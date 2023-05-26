@@ -19,7 +19,7 @@ class DeclaredEnumValues:
     table_definitions: Optional[List[EnumToTable]] = None
 
 
-def get_defined_enums(conn, schema):
+def get_defined_enums(conn, schema: str):
     """
     Return a dict mapping PostgreSQL enumeration types to the set of their
     defined values.
@@ -29,7 +29,7 @@ def get_defined_enums(conn, schema):
         Schema name (e.g. "public").
     :returns DeclaredEnumValues:
         enum_definitions={
-            "my_enum": frozenset(["a", "b", "c"]),
+            "my_enum": tuple(["a", "b", "c"]),
         }
     """
     sql = """
@@ -50,7 +50,7 @@ def get_defined_enums(conn, schema):
     })
 
 
-def get_declared_enums(metadata, schema, default):
+def get_declared_enums(metadata, schema: str, default_schema: str):
     """
     Return a dict mapping SQLAlchemy enumeration types to the set of their
     declared values.
@@ -58,9 +58,11 @@ def get_declared_enums(metadata, schema, default):
         ...
     :param str schema:
         Schema name (e.g. "public").
+    :param default_schema:
+        Default schema name, likely will be "public"
     :returns DeclaredEnumValues:
         enum_definitions: {
-            "my_enum": frozenset(["a", "b", "c"]),
+            "my_enum": tuple(["a", "b", "c"]),
         },
         table_definitions: [
             EnumToTable(table_name="my_table", column_name="my_column", enum_name="my_enum"),
@@ -71,7 +73,7 @@ def get_declared_enums(metadata, schema, default):
 
     for table in metadata.tables.values():
         for column in table.columns:
-            if isinstance(column.type, sqlalchemy.Enum) and schema == (column.type.schema or default):
+            if isinstance(column.type, sqlalchemy.Enum) and schema == (column.type.schema or default_schema):
                 types.add(column.type)
                 table_definitions.append(
                     EnumToTable(table.name, column.name, column.type.name)

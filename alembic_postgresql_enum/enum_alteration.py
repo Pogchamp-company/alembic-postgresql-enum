@@ -46,8 +46,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
     def sync_enum_values(
             cls,
             operations,
-            schema,
-            enum_name,
+            schema: str,
+            enum_name: str,
             new_values: List[str],
             affected_columns: List[Tuple[str, str]] = None,
     ):
@@ -63,23 +63,28 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             List of enumeration values that should exist after this migration
             executes.
         :param list affected_columns:
-            List of columns that references this enum
+            List of columns that references this enum.
+            First value is table_name,
+            second value is column_name
         """
         with get_connection(operations) as conn:
+            enum_type_name = f"{schema}.{enum_name}"
+            temporary_enum_name = f"{enum_name}_old"
 
-            query_str = f"""
-                    ALTER TYPE {schema}.{enum_name} RENAME TO {enum_name}_old;
-                    CREATE TYPE {schema}.{enum_name} AS ENUM({', '.join(f"'{value}'" for value in new_values)});
-                    """
+            query_str = (
+                f"""ALTER TYPE {enum_type_name} RENAME TO {temporary_enum_name};"""
+                f"""CREATE TYPE {enum_type_name} AS ENUM({', '.join(f"'{value}'" for value in new_values)});"""
+            )
 
             for table_name, column_name in affected_columns:
-                query_str += f"""
-                    ALTER TABLE {table_name} ALTER {column_name} DROP DEFAULT;
-                    ALTER TABLE {table_name} ALTER COLUMN {column_name} TYPE {schema}.{enum_name} USING {column_name}::text::{schema}.{enum_name};
-                """
-            query_str += f"""DROP TYPE {enum_name}_old;"""
+                query_str += (
+                    f"""ALTER TABLE {table_name} ALTER COLUMN {column_name} DROP DEFAULT;"""
+                    f"""ALTER TABLE {table_name} ALTER COLUMN {column_name} TYPE {enum_type_name} USING {column_name}::text::{enum_type_name};"""
+                )
 
-            for q in query_str.split(';')[:-1]:
+            query_str += f"""DROP TYPE {temporary_enum_name}"""
+
+            for q in query_str.split(';'):
                 conn.execute(sqlalchemy.text(q))
 
 
@@ -97,7 +102,7 @@ def render_sync_enum_value_op(autogen_context, op: SyncEnumValuesOp):
 def compare_enums(autogen_context, upgrade_ops, schema_names):
     """
     Walk the declared SQLAlchemy schema for every referenced Enum, walk the PG
-    schema for every definde Enum, then generate SyncEnumValuesOp migrations
+    schema for every defined Enum, then generate SyncEnumValuesOp migrations
     for each defined enum that has grown new entries when compared to its
     declared version.
     Enums that don't exist in the database yet are ignored, since
@@ -105,12 +110,12 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
     """
     to_add = set()
     for schema in schema_names:
-        default = autogen_context.dialect.default_schema_name
+        default_schema = autogen_context.dialect.default_schema_name
         if schema is None:
-            schema = default
+            schema = default_schema
 
         defined = get_defined_enums(autogen_context.connection, schema)
-        declared = get_declared_enums(autogen_context.metadata, schema, default)
+        declared = get_declared_enums(autogen_context.metadata, schema, default_schema)
 
         for name, new_values in declared.enum_definitions.items():
             old_values = defined.enum_definitions.get(name)

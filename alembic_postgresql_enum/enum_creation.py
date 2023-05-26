@@ -44,12 +44,12 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
     Create enums that are not in Postgres schema
     """
     for schema in schema_names:
-        default = autogen_context.dialect.default_schema_name
+        default_schema = autogen_context.dialect.default_schema_name
         if schema is None:
-            schema = default
+            schema = default_schema
 
         defined = get_defined_enums(autogen_context.connection, schema)
-        declared = get_declared_enums(autogen_context.metadata, schema, default)
+        declared = get_declared_enums(autogen_context.metadata, schema, default_schema)
 
         for name, new_values in declared.enum_definitions.items():
             if name not in defined.enum_definitions:
