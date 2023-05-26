@@ -1,4 +1,8 @@
 # alembic-postgresql-enum
+[<img src="https://img.shields.io/pypi/pyversions/alembic-postgresql-enum">](https://pypi.org/project/alembic-postgresql-enum/)
+[<img src="https://img.shields.io/pypi/v/alembic-postgresql-enum">](https://pypi.org/project/alembic-postgresql-enum/)
+[<img src="https://img.shields.io/pypi/l/alembic-postgresql-enum">](https://pypi.org/project/alembic-postgresql-enum/)
+
 Alembic autogenerate support for creation, alteration and deletion of enums
 
 Alembic will now automatically:
