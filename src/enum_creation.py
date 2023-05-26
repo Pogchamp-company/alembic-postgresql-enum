@@ -1,3 +1,5 @@
+from typing import List
+
 import alembic
 
 from .get_enum_data import get_defined_enums, get_declared_enums
@@ -7,7 +9,7 @@ class CreateEnumOp(alembic.operations.ops.MigrateOperation):
     def __init__(self,
                  schema: str,
                  name: str,
-                 enum_values: list[str],
+                 enum_values: List[str],
                  should_reverse: bool = False
                  ):
         self.schema = schema

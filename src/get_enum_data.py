@@ -1,7 +1,8 @@
+# Based on https://github.com/dw/alembic-autogenerate-enums
 from dataclasses import dataclass
 import sqlalchemy
 from contextlib import contextmanager
-from typing import Optional, Dict, List, Tuple, FrozenSet
+from typing import Optional, Dict, List, Tuple
 
 
 @dataclass
