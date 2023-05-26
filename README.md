@@ -12,6 +12,12 @@ Alembic will now automatically:
 - Delete unused enums from schema
 
 ## Usage
+
+Install library:
+```
+pip install alembic-postgresql-enum
+```
+
 Add the line:
 
 ```python 
