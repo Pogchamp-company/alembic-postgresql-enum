@@ -49,7 +49,7 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
             schema = default_schema
 
         defined = get_defined_enums(autogen_context.connection, schema)
-        declared = get_declared_enums(autogen_context.metadata, schema, default_schema)
+        declared = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
         for name, new_values in declared.enum_definitions.items():
             if name not in defined.enum_definitions:

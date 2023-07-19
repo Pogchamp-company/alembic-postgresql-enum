@@ -22,7 +22,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             name: str,
             old_values: List[str],
             new_values: List[str],
-            affected_columns: List[Tuple[str, str]],
+            affected_columns: 'List[Tuple[str, str]]',
     ):
         self.schema = schema
         self.name = name
@@ -49,7 +49,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             schema: str,
             enum_name: str,
             new_values: List[str],
-            affected_columns: List[Tuple[str, str]] = None,
+            affected_columns: 'List[Tuple[str, str]]' = None,
     ):
         """
         Replace enum values with `new_values`
@@ -115,7 +115,7 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
             schema = default_schema
 
         defined = get_defined_enums(autogen_context.connection, schema)
-        declared = get_declared_enums(autogen_context.metadata, schema, default_schema)
+        declared = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
         for name, new_values in declared.enum_definitions.items():
             old_values = defined.enum_definitions.get(name)
