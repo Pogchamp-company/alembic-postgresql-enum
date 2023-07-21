@@ -123,8 +123,8 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
         declared = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
         for name, new_values in declared.enum_definitions.items():
-            old_values = defined.enum_definitions.get(name)
-            if name in defined.enum_definitions and new_values != old_values:
+            old_values = defined.get(name)
+            if name in defined and new_values != old_values:
                 affected_columns = frozenset(
                     (table_definition.table_name, table_definition.column_name)
                     for table_definition in declared.table_definitions

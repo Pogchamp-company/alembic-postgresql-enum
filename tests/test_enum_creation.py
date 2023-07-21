@@ -3,7 +3,7 @@ from alembic.autogenerate import api
 from alembic.operations import ops
 from sqlalchemy import Connection
 
-from alembic_postgresql_enum import CreateEnumOp
+from alembic_postgresql_enum import CreateEnumOp, DropEnumOp
 from tests.schemas import get_schema_without_enum, get_schema_with_enum_variants, USER_STATUS_ENUM_NAME, DEFAULT_SCHEMA, \
     USER_TABLE_NAME, USER_STATUS_COLUMN_NAME
 from tests.utils.migration_context import create_migration_context
@@ -57,7 +57,7 @@ def test_create_enum_diff_tuple(connection: Connection):
     create_enum_tuple, add_column_tuple = diffs
 
     assert create_enum_tuple == (
-        CreateEnumOp.create_operation_name,
+        CreateEnumOp.operation_name,
         USER_STATUS_ENUM_NAME,
         DEFAULT_SCHEMA,
         tuple(new_enum_variants)
@@ -112,7 +112,7 @@ def test_delete_enum_diff_tuple(connection: Connection):
 
     assert remove_column_tuple[0] == 'remove_column'
     assert create_enum_tuple == (
-        CreateEnumOp.drop_operation_name,
+        DropEnumOp.operation_name,
         USER_STATUS_ENUM_NAME,
         DEFAULT_SCHEMA,
         tuple(old_enum_variants)
