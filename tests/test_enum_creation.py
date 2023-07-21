@@ -7,7 +7,7 @@ from tests.schemas import get_schema_without_enum, get_schema_with_enum_variants
 from tests.utils.migration_context import create_migration_context
 
 
-def test_create_enum(connection):
+def test_create_enum_diff_tuple(connection):
     """Check that library correctly creates enum before its use inside add_column"""
     database_schema = get_schema_without_enum()
     database_schema.create_all(connection)
@@ -37,7 +37,7 @@ def test_create_enum(connection):
     assert add_column_tuple[0] == 'add_column'
 
 
-def test_delete_enum(connection):
+def test_delete_enum_diff_tuple(connection):
     """Check that library correctly removes unused enum"""
     old_enum_variants = ["active", "passive"]
     database_schema = get_schema_with_enum_variants(old_enum_variants)
