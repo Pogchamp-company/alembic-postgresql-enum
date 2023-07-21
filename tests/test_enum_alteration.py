@@ -23,34 +23,6 @@ def get_schema_with_enum_variants(variants: List[str]) -> MetaData:
     return schema
 
 
-def get_old_metadata() -> MetaData:
-    m = MetaData()
-
-    Table(
-        "user",
-        m,
-        Column("id", Integer, primary_key=True),
-        Column("status", postgresql.ENUM("active", "passive",
-                                         name="user_status"))
-    )
-
-    return m
-
-
-def get_metadata() -> MetaData:
-    m = MetaData()
-
-    Table(
-        "user",
-        m,
-        Column("id", Integer, primary_key=True),
-        Column("status", postgresql.ENUM("active", "passive", "engineer",
-                                         name="user_status"))
-    )
-
-    return m
-
-
 def test_add_new_enum_value(connection):
     old_enum_variants = ["active", "passive"]
 
