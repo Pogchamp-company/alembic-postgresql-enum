@@ -65,3 +65,37 @@ def test_remove_enum_value(connection):
     assert affected_columns == [
         ('user', 'status')
     ]
+
+
+def test_rename_enum_value(connection):
+    """Check that enum variants are updated when a variant is renamed"""
+    old_enum_variants = ["active", "passive", "banned"]
+
+    database_schema = get_schema_with_enum_variants(old_enum_variants)
+    database_schema.create_all(connection)
+
+    new_enum_variants = old_enum_variants.copy()
+    new_enum_variants.remove('banned')
+    new_enum_variants.append('inactive')
+
+    target_schema = get_schema_with_enum_variants(new_enum_variants)
+
+    context = create_migration_context(connection, target_schema)
+
+    autogen_context = api.AutogenContext(context, target_schema)
+
+    uo = ops.UpgradeOps(ops=[])
+    autogenerate._produce_net_changes(autogen_context, uo)
+
+    diffs = uo.as_diffs()
+    assert len(diffs) == 1
+
+    change_variants_diff_tuple = diffs[0]
+    operation_name, old_values, new_values, affected_columns = change_variants_diff_tuple
+
+    assert operation_name == SyncEnumValuesOp.operation_name
+    assert old_values == old_enum_variants
+    assert new_values == new_enum_variants
+    assert affected_columns == [
+        ('user', 'status')
+    ]
