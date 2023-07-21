@@ -1,5 +1,5 @@
 from alembic.runtime.migration import MigrationContext
-from sqlalchemy import MetaData, Engine
+from sqlalchemy import MetaData, Engine, Connection
 from sqlalchemy.dialects import postgresql
 
 
@@ -15,7 +15,7 @@ def default_migration_options(target_schema: MetaData) -> dict:
     }
 
 
-def create_migration_context(connection: Engine, target_schema: MetaData):
+def create_migration_context(connection: Connection, target_schema: MetaData):
     return MigrationContext.configure(
         connection=connection,
         opts=default_migration_options(target_schema),

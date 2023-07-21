@@ -9,7 +9,7 @@ dotenv.load_dotenv()
 database_uri = os.getenv('DATABASE_URI')
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def connection() -> Generator:
     engine = create_engine(database_uri)
     with engine.connect() as conn:

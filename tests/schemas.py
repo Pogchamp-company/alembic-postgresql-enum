@@ -3,20 +3,20 @@ from typing import List
 from sqlalchemy import MetaData, Table, Column, Integer
 from sqlalchemy.dialects import postgresql
 
-default_schema = 'public'
-user_table_name = 'user'
-user_status_column_name = 'status'
-user_status_enum_name = 'user_status'
+DEFAULT_SCHEMA = 'public'
+USER_TABLE_NAME = 'user'
+USER_STATUS_COLUMN_NAME = 'status'
+USER_STATUS_ENUM_NAME = 'user_status'
 
 
 def get_schema_with_enum_variants(variants: List[str]) -> MetaData:
     schema = MetaData()
 
     Table(
-        user_table_name,
+        USER_TABLE_NAME,
         schema,
         Column("id", Integer, primary_key=True),
-        Column(user_status_column_name, postgresql.ENUM(*variants, name=user_status_enum_name))
+        Column(USER_STATUS_COLUMN_NAME, postgresql.ENUM(*variants, name=USER_STATUS_ENUM_NAME))
     )
 
     return schema
@@ -26,7 +26,7 @@ def get_schema_without_enum() -> MetaData:
     schema = MetaData()
 
     Table(
-        user_table_name,
+        USER_TABLE_NAME,
         schema,
         Column("id", Integer, primary_key=True),
     )
