@@ -96,7 +96,7 @@ def test_remove_enum_value_diff_tuple(connection: Connection):
     assert old_values == old_enum_variants
     assert new_values == new_enum_variants
     assert affected_columns == [
-        ('user', 'status')
+        (USER_TABLE_NAME, USER_STATUS_COLUMN_NAME)
     ]
 
 
@@ -130,5 +130,5 @@ def test_rename_enum_value_diff_tuple(connection: Connection):
     assert old_values == old_enum_variants
     assert new_values == new_enum_variants
     assert affected_columns == [
-        ('user', 'status')
+        (USER_TABLE_NAME, USER_STATUS_COLUMN_NAME)
     ]
