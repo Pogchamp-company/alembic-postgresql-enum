@@ -1,0 +1,23 @@
+from alembic.runtime.migration import MigrationContext
+from sqlalchemy import MetaData, Engine
+from sqlalchemy.dialects import postgresql
+
+
+def default_migration_options(target_schema: MetaData) -> dict:
+    return {
+        "alembic_module_prefix": "op.",
+        "sqlalchemy_module_prefix": "sa.",
+        "compare_type": True,
+        "compare_server_default": True,
+        "target_metadata": target_schema,
+        "upgrade_token": "upgrades",
+        "downgrade_token": "downgrades",
+    }
+
+
+def create_migration_context(connection: Engine, target_schema: MetaData):
+    return MigrationContext.configure(
+        connection=connection,
+        opts=default_migration_options(target_schema),
+        dialect=postgresql.dialect,
+    )
