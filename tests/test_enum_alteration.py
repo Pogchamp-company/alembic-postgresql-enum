@@ -1,29 +1,14 @@
-from typing import List
-
 from alembic import autogenerate
 from alembic.autogenerate import api
 from alembic.operations import ops
-from sqlalchemy import MetaData, Table, Column, Integer
-from sqlalchemy.dialects import postgresql
 
 from alembic_postgresql_enum import SyncEnumValuesOp
+from tests.schemas import get_schema_with_enum_variants
 from tests.utils.migration_context import create_migration_context
 
 
-def get_schema_with_enum_variants(variants: List[str]) -> MetaData:
-    schema = MetaData()
-
-    Table(
-        "user",
-        schema,
-        Column("id", Integer, primary_key=True),
-        Column("status", postgresql.ENUM(*variants, name="user_status"))
-    )
-
-    return schema
-
-
 def test_add_new_enum_value(connection):
+    """Check that enum variants are updated when new variant is added"""
     old_enum_variants = ["active", "passive"]
 
     database_schema = get_schema_with_enum_variants(old_enum_variants)
@@ -50,6 +35,7 @@ def test_add_new_enum_value(connection):
 
 
 def test_remove_enum_value(connection):
+    """Check that enum variants are updated when new variant is removed"""
     old_enum_variants = ["active", "passive", "banned"]
 
     database_schema = get_schema_with_enum_variants(old_enum_variants)
