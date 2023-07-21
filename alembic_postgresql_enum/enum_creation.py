@@ -31,7 +31,7 @@ class CreateEnumOp(alembic.operations.ops.MigrateOperation):
 
     def to_diff_tuple(self) -> 'Tuple[Any, ...]':
         operation_name = self.drop_operation_name if self.should_reverse else self.create_operation_name
-        return operation_name, self.name, self.schema, self.enum_values, self.should_reverse
+        return operation_name, self.name, self.schema, self.enum_values
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(CreateEnumOp)

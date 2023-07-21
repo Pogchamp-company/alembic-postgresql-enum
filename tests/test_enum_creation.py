@@ -32,8 +32,7 @@ def test_create_enum(connection):
         CreateEnumOp.create_operation_name,
         user_status_enum_name,
         default_schema,
-        tuple(new_enum_variants),
-        False
+        tuple(new_enum_variants)
     )
     assert add_column_tuple[0] == 'add_column'
 
@@ -63,6 +62,5 @@ def test_delete_enum(connection):
         CreateEnumOp.drop_operation_name,
         user_status_enum_name,
         default_schema,
-        tuple(old_enum_variants),
-        True
+        tuple(old_enum_variants)
     )
