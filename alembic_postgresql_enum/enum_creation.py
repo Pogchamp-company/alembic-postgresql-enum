@@ -1,4 +1,5 @@
-from typing import List
+from typing import Any
+from typing import List, Tuple
 
 import alembic
 
@@ -6,6 +7,9 @@ from .get_enum_data import get_defined_enums, get_declared_enums
 
 
 class CreateEnumOp(alembic.operations.ops.MigrateOperation):
+    create_operation_name = 'create_enum'
+    drop_operation_name = 'drop_enum'
+
     def __init__(self,
                  schema: str,
                  name: str,
@@ -24,6 +28,10 @@ class CreateEnumOp(alembic.operations.ops.MigrateOperation):
             enum_values=self.enum_values,
             should_reverse=not self.should_reverse
         )
+
+    def to_diff_tuple(self) -> 'Tuple[Any, ...]':
+        operation_name = self.drop_operation_name if self.should_reverse else self.create_operation_name
+        return operation_name, self.name, self.schema, self.enum_values, self.should_reverse
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(CreateEnumOp)

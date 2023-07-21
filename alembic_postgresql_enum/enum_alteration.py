@@ -4,7 +4,7 @@ SQLAlchemy enums.
 
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 import alembic.autogenerate
 import alembic.operations.base
@@ -16,6 +16,8 @@ from .get_enum_data import get_connection, get_defined_enums, get_declared_enums
 
 @alembic.operations.base.Operations.register_operation("sync_enum_values")
 class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
+    operation_name = 'change_enum_variants'
+
     def __init__(
             self,
             schema: str,
@@ -86,6 +88,9 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
             for q in query_str.split(';'):
                 conn.execute(sqlalchemy.text(q))
+
+    def to_diff_tuple(self) -> 'Tuple[Any, ...]':
+        return self.operation_name, self.old_values, self.new_values, self.affected_columns
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
