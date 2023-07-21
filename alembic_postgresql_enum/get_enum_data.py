@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict, List, Tuple
 
 import sqlalchemy
+from sqlalchemy import MetaData
 
 
 @dataclass
@@ -65,7 +66,7 @@ def get_enum_values(enum_type: sqlalchemy.Enum, dialect) -> 'Tuple[str, ...]':
     return tuple(value_processor(value) for value in enum_type.enums)
 
 
-def get_declared_enums(metadata, schema: str, default_schema: str, dialect):
+def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dialect) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy enumeration types to the set of their
     declared values.
