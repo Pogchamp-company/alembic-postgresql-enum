@@ -1,11 +1,14 @@
 import os
 from typing import Generator
 
-import dotenv
 import pytest
 from sqlalchemy import create_engine
 
-dotenv.load_dotenv()
+try:
+    import dotenv
+    dotenv.load_dotenv()
+except ImportError:
+    pass
 database_uri = os.getenv('DATABASE_URI')
 
 
