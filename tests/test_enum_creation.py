@@ -1,7 +1,10 @@
+from typing import TYPE_CHECKING
+
 from alembic import autogenerate
 from alembic.autogenerate import api
 from alembic.operations import ops
-from sqlalchemy import Connection
+if TYPE_CHECKING:
+    from sqlalchemy import Connection
 
 from alembic_postgresql_enum import CreateEnumOp, DropEnumOp
 from tests.schemas import get_schema_without_enum, get_schema_with_enum_variants, USER_STATUS_ENUM_NAME, DEFAULT_SCHEMA, \
@@ -9,7 +12,7 @@ from tests.schemas import get_schema_without_enum, get_schema_with_enum_variants
 from tests.utils.migration_context import create_migration_context
 
 
-def test_create_enum_render(connection: Connection):
+def test_create_enum_render(connection: 'Connection'):
     """Check that library correctly creates enum before its use inside add_column"""
     database_schema = get_schema_without_enum()
     database_schema.create_all(connection)
@@ -36,7 +39,7 @@ def test_create_enum_render(connection: Connection):
     # ### end Alembic commands ###""")
 
 
-def test_create_enum_diff_tuple(connection: Connection):
+def test_create_enum_diff_tuple(connection: 'Connection'):
     """Check that library correctly creates enum before its use inside add_column"""
     database_schema = get_schema_without_enum()
     database_schema.create_all(connection)
@@ -65,7 +68,7 @@ def test_create_enum_diff_tuple(connection: Connection):
     assert add_column_tuple[0] == 'add_column'
 
 
-def test_delete_enum_render(connection: Connection):
+def test_delete_enum_render(connection: 'Connection'):
     """Check that library correctly removes unused enum"""
     old_enum_variants = ["active", "passive"]
     database_schema = get_schema_with_enum_variants(old_enum_variants)
@@ -91,7 +94,7 @@ def test_delete_enum_render(connection: Connection):
     # ### end Alembic commands ###""")
 
 
-def test_delete_enum_diff_tuple(connection: Connection):
+def test_delete_enum_diff_tuple(connection: 'Connection'):
     """Check that library correctly removes unused enum"""
     old_enum_variants = ["active", "passive"]
     database_schema = get_schema_with_enum_variants(old_enum_variants)

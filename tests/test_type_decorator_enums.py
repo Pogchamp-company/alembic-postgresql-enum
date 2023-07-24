@@ -1,9 +1,12 @@
 import enum
 from copy import copy
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import sqlalchemy.types
-from sqlalchemy import Table, Column, MetaData, Connection
+from sqlalchemy import Table, Column, MetaData
+if TYPE_CHECKING:
+    from sqlalchemy import Connection
 from sqlalchemy.dialects import postgresql
 
 from alembic_postgresql_enum import get_declared_enums
@@ -69,7 +72,7 @@ def get_schema_with_custom_enum() -> MetaData:
     return schema
 
 
-def test_get_declared_enums_for_custom_enum(connection: Connection):
+def test_get_declared_enums_for_custom_enum(connection: 'Connection'):
     declared_schema = get_schema_with_custom_enum()
 
     function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, postgresql.dialect)

@@ -1,7 +1,10 @@
+from typing import TYPE_CHECKING
+
 from alembic import autogenerate
 from alembic.autogenerate import api
 from alembic.operations import ops
-from sqlalchemy import Connection
+if TYPE_CHECKING:
+    from sqlalchemy import Connection
 
 from alembic_postgresql_enum import SyncEnumValuesOp
 from tests.schemas import get_schema_with_enum_variants, USER_TABLE_NAME, USER_STATUS_ENUM_NAME, \
@@ -9,7 +12,7 @@ from tests.schemas import get_schema_with_enum_variants, USER_TABLE_NAME, USER_S
 from tests.utils.migration_context import create_migration_context
 
 
-def test_add_new_enum_value_render(connection: Connection):
+def test_add_new_enum_value_render(connection: 'Connection'):
     """Check that enum variants are updated when new variant is added"""
     old_enum_variants = ["active", "passive"]
 
@@ -36,7 +39,7 @@ def test_add_new_enum_value_render(connection: Connection):
     # ### end Alembic commands ###""")
 
 
-def test_add_new_enum_value_diff_tuple(connection: Connection):
+def test_add_new_enum_value_diff_tuple(connection: 'Connection'):
     """Check that enum variants are updated when new variant is added"""
     old_enum_variants = ["active", "passive"]
 
@@ -67,7 +70,7 @@ def test_add_new_enum_value_diff_tuple(connection: Connection):
     )
 
 
-def test_remove_enum_value_diff_tuple(connection: Connection):
+def test_remove_enum_value_diff_tuple(connection: 'Connection'):
     """Check that enum variants are updated when new variant is removed"""
     old_enum_variants = ["active", "passive", "banned"]
 
@@ -100,7 +103,7 @@ def test_remove_enum_value_diff_tuple(connection: Connection):
     ]
 
 
-def test_rename_enum_value_diff_tuple(connection: Connection):
+def test_rename_enum_value_diff_tuple(connection: 'Connection'):
     """Check that enum variants are updated when a variant is renamed"""
     old_enum_variants = ["active", "passive", "banned"]
 
