@@ -9,6 +9,9 @@ on:
 jobs:
   run_tests:
     runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
     # Service containers to run with `container-job`
     services:
@@ -31,13 +34,11 @@ jobs:
           --health-retries 5
 
     steps:
-      # Чекаутим код
       - uses: actions/checkout@master
-      # Устанавливаем python нужной версии
-      - uses: actions/setup-python@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.8'
-          architecture: 'x64'
+          python-version: ${{ matrix.python-version }}
       - name: Install requirements
         # Устанавливаем зависимости
         run: pip install -r tests/requirements.txt
