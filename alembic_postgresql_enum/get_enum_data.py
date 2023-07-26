@@ -1,10 +1,12 @@
 # Based on https://github.com/dw/alembic-autogenerate-enums
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Optional, Dict, List, Tuple
+from typing import Optional, Dict, List, Tuple, TYPE_CHECKING
 
 import sqlalchemy
 from sqlalchemy import MetaData
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Dialect
 
 
 @dataclass
@@ -25,7 +27,7 @@ class DeclaredEnumValues:
 
 def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
     """
-    Return a dict mapping PostgreSQL enumeration types to the set of their
+    Return a dict mapping PostgreSQL defined enumeration types to the set of their
     defined values.
     :param conn:
         SQLAlchemy connection instance.
@@ -68,12 +70,12 @@ def get_enum_values(enum_type: sqlalchemy.Enum, dialect) -> 'Tuple[str, ...]':
     return tuple(value_processor(value) for value in enum_type.enums)
 
 
-def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dialect) -> DeclaredEnumValues:
+def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dialect: 'Dialect') -> DeclaredEnumValues:
     """
-    Return a dict mapping SQLAlchemy enumeration types to the set of their
-    declared values.
+    Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
+    with columns where enums are used.
     :param metadata:
-        ...
+        SqlAlchemy schema
     :param str schema:
         Schema name (e.g. "public").
     :param default_schema:

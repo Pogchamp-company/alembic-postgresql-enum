@@ -3,8 +3,10 @@ from typing import Any, Iterable
 from typing import List, Tuple
 
 import alembic
+from alembic.autogenerate.api import AutogenContext
+from alembic.operations.ops import UpgradeOps
 
-from .get_enum_data import get_defined_enums, get_declared_enums
+from .get_enum_data import get_defined_enums, get_declared_enums, EnumNamesToValues
 
 
 class EnumOp(alembic.operations.ops.MigrateOperation, ABC):
@@ -49,23 +51,43 @@ class DropEnumOp(EnumOp):
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(CreateEnumOp)
-def render_create_enum_op(autogen_context, op: CreateEnumOp):
+def render_create_enum_op(autogen_context: AutogenContext, op: CreateEnumOp):
     return f"""
     sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').create(op.get_bind())
     """.strip()
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(DropEnumOp)
-def render_drop_enum_op(autogen_context, op: DropEnumOp):
+def render_drop_enum_op(autogen_context: AutogenContext, op: DropEnumOp):
     return f"""
         sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').drop(op.get_bind())
         """.strip()
 
 
-@alembic.autogenerate.comparators.dispatch_for("schema")
-def compare_enums(autogen_context, upgrade_ops, schema_names):
+def create_new_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,
+                     schema: str, upgrade_ops: UpgradeOps):
     """
     Create enums that are not in Postgres schema
+    """
+    for name, new_values in declared_enums.items():
+        if name not in defined_enums:
+            upgrade_ops.ops.insert(0, CreateEnumOp(name=name, schema=schema, enum_values=new_values))
+
+
+def drop_unused_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,
+                      schema: str, upgrade_ops: UpgradeOps):
+    """
+    Drop enums that are in Postgres schema but not declared in SqlAlchemy schema
+    """
+    for name, new_values in defined_enums.items():
+        if name not in declared_enums:
+            upgrade_ops.ops.append(DropEnumOp(name=name, schema=schema, enum_values=new_values))
+
+
+@alembic.autogenerate.comparators.dispatch_for("schema")
+def compare_enums(autogen_context: AutogenContext, upgrade_ops: UpgradeOps, schema_names: Iterable[str]):
+    """
+    Compare declared and defined enums
     """
     for schema in schema_names:
         default_schema = autogen_context.dialect.default_schema_name
@@ -73,12 +95,8 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
             schema = default_schema
 
         defined = get_defined_enums(autogen_context.connection, schema)
-        declared = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
+        declarations = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
-        for name, new_values in declared.enum_definitions.items():
-            if name not in defined:
-                upgrade_ops.ops.insert(0, CreateEnumOp(name=name, schema=schema, enum_values=new_values))
+        create_new_enums(defined, declarations.enum_definitions, schema, upgrade_ops)
 
-        for name, new_values in defined.items():
-            if name not in declared.enum_definitions:
-                upgrade_ops.ops.append(DropEnumOp(name=name, schema=schema, enum_values=new_values))
+        drop_unused_enums(defined, declarations.enum_definitions, schema, upgrade_ops)
