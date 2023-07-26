@@ -1,28 +1,33 @@
 # Based on https://github.com/dw/alembic-autogenerate-enums
+from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Optional, Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, TYPE_CHECKING, Any, Set
 
 import sqlalchemy
 from sqlalchemy import MetaData
+
 if TYPE_CHECKING:
     from sqlalchemy.engine import Dialect
 
 
-@dataclass
-class EnumToTable:
+@dataclass(frozen=True)
+class TableReference:
     table_name: str
     column_name: str
-    enum_name: str
+
+    def to_tuple(self):
+        return self.table_name, self.column_name
 
 
 EnumNamesToValues = Dict[str, Tuple[str]]
+EnumNamesToTableReferences = Dict[str, Tuple[TableReference]]
 
 
 @dataclass
 class DeclaredEnumValues:
-    enum_definitions: EnumNamesToValues
-    table_definitions: Optional[List[EnumToTable]] = None
+    enum_values: EnumNamesToValues
+    enum_table_references: EnumNamesToTableReferences
 
 
 def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
@@ -70,6 +75,17 @@ def get_enum_values(enum_type: sqlalchemy.Enum, dialect) -> 'Tuple[str, ...]':
     return tuple(value_processor(value) for value in enum_type.enums)
 
 
+def column_type_is_enum(column_type: Any) -> bool:
+    if isinstance(column_type, sqlalchemy.Enum):
+        return True
+
+    # For specific case when types.TypeDecorator is used
+    if isinstance(getattr(column_type, 'impl', None), sqlalchemy.Enum):
+        return True
+
+    return False
+
+
 def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dialect: 'Dialect') -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
@@ -83,43 +99,39 @@ def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dia
     :param dialect:
         Current sql dialect
     :returns DeclaredEnumValues:
-        enum_definitions: {
+        enum_values: {
             "my_enum": tuple(["a", "b", "c"]),
         },
-        table_definitions: [
-            EnumToTable(table_name="my_table", column_name="my_column", enum_name="my_enum"),
-        ]
+        enum_table_references: {
+            "my_enum": [
+                EnumToTable(table_name="my_table", column_name="my_column")
+            ]
+        }
     """
-    types = set()
-    table_definitions = []
+    enum_name_to_values = dict()
+    enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(set)
 
     for table in metadata.tables.values():
         for column in table.columns:
+            # if column is in different schema
             if not hasattr(column.type, 'schema'):
                 continue
-
             if schema != (column.type.schema or default_schema):
                 continue
 
-            if isinstance(column.type, sqlalchemy.Enum):
-                types.add(column.type)
-
-            # For specific case when types.TypeDecorator is used
-            elif isinstance(getattr(column.type, 'impl', None), sqlalchemy.Enum):
-                types.add(column.type)
-
-            else:
+            if not column_type_is_enum(column.type):
                 continue
 
-            table_definitions.append(
-                EnumToTable(table.name, column.name, column.type.name)
-            )
+            if column.type.name not in enum_name_to_values:
+                enum_name_to_values[column.type.name] = get_enum_values(column.type, dialect)
+
+            enum_name_to_table_references[column.type.name].add(TableReference(table.name, column.name))
 
     return DeclaredEnumValues(
-        enum_definitions={
-            t.name: get_enum_values(t, dialect) for t in types
-        },
-        table_definitions=table_definitions,
+        enum_values=enum_name_to_values,
+        enum_table_references={enum_name: tuple(table_references)
+                               for enum_name, table_references
+                               in enum_name_to_table_references.items()},
     )
 
 

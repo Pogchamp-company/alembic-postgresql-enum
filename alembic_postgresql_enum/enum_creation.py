@@ -97,6 +97,6 @@ def compare_enums(autogen_context: AutogenContext, upgrade_ops: UpgradeOps, sche
         defined = get_defined_enums(autogen_context.connection, schema)
         declarations = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
-        create_new_enums(defined, declarations.enum_definitions, schema, upgrade_ops)
+        create_new_enums(defined, declarations.enum_values, schema, upgrade_ops)
 
-        drop_unused_enums(defined, declarations.enum_definitions, schema, upgrade_ops)
+        drop_unused_enums(defined, declarations.enum_values, schema, upgrade_ops)

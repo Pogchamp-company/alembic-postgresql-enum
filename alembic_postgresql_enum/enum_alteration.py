@@ -10,8 +10,11 @@ import alembic.autogenerate
 import alembic.operations.base
 import alembic.operations.ops
 import sqlalchemy
+from alembic.autogenerate.api import AutogenContext
+from alembic.operations.ops import UpgradeOps
 
-from .get_enum_data import get_connection, get_defined_enums, get_declared_enums
+from . import EnumNamesToValues
+from .get_enum_data import get_connection, get_defined_enums, get_declared_enums, EnumNamesToTableReferences
 
 
 @alembic.operations.base.Operations.register_operation("sync_enum_values")
@@ -94,7 +97,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
-def render_sync_enum_value_op(autogen_context, op: SyncEnumValuesOp):
+def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValuesOp):
     return "op.sync_enum_values(%r, %r, %r, %r)" % (
         op.schema,
         op.name,
@@ -103,8 +106,28 @@ def render_sync_enum_value_op(autogen_context, op: SyncEnumValuesOp):
     )
 
 
+def sync_changed_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,
+                       table_references: EnumNamesToTableReferences,
+                       schema: str, upgrade_ops: UpgradeOps):
+    for enum_name, new_values in declared_enums.items():
+        if enum_name not in defined_enums:
+            # That is work for create_new_enums function
+            continue
+
+        old_values = defined_enums[enum_name]
+
+        if new_values == old_values:
+            # Enum definition and declaration are in sync
+            continue
+
+        affected_columns = table_references[enum_name]
+        op = SyncEnumValuesOp(schema, enum_name, list(old_values), list(new_values),
+                              [column_reference.to_tuple() for column_reference in affected_columns])
+        upgrade_ops.ops.append(op)
+
+
 @alembic.autogenerate.comparators.dispatch_for("schema")
-def compare_enums(autogen_context, upgrade_ops, schema_names):
+def compare_enums(autogen_context: AutogenContext, upgrade_ops, schema_names):
     """
     Walk the declared SQLAlchemy schema for every referenced Enum, walk the PG
     schema for every defined Enum, then generate SyncEnumValuesOp migrations
@@ -113,7 +136,6 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
     Enums that don't exist in the database yet are ignored, since
     SQLAlchemy/Alembic will create them as part of the usual migration process.
     """
-    to_add = set()
     for schema in schema_names:
         default_schema = autogen_context.dialect.default_schema_name
         if schema is None:
@@ -122,16 +144,4 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
         defined = get_defined_enums(autogen_context.connection, schema)
         declared = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
-        for name, new_values in declared.enum_definitions.items():
-            old_values = defined.get(name)
-            if name in defined and new_values != old_values:
-                affected_columns = frozenset(
-                    (table_definition.table_name, table_definition.column_name)
-                    for table_definition in declared.table_definitions
-                    if table_definition.enum_name == name
-                )
-                to_add.add((schema, name, old_values, new_values, affected_columns))
-
-    for schema, name, old_values, new_values, affected_columns in sorted(to_add):
-        op = SyncEnumValuesOp(schema, name, list(old_values), list(new_values), list(affected_columns))
-        upgrade_ops.ops.append(op)
+        sync_changed_enums(defined, declared.enum_values, declared.enum_table_references, schema, upgrade_ops)

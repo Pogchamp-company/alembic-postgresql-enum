@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from sqlalchemy.dialects import postgresql
 
 from alembic_postgresql_enum import get_declared_enums
-from alembic_postgresql_enum.get_enum_data import EnumToTable
+from alembic_postgresql_enum.get_enum_data import TableReference
 from tests.schemas import DEFAULT_SCHEMA
 
 
@@ -77,10 +77,10 @@ def test_get_declared_enums_for_custom_enum(connection: 'Connection'):
 
     function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, postgresql.dialect)
 
-    assert function_result.enum_definitions == {
+    assert function_result.enum_values == {
         # All declared enum variants must be taken from OrderDeliveryStatus values, see ValuesEnum
         ORDER_DELIVERY_STATUS_ENUM_NAME: tuple(enum_item.value for enum_item in OrderDeliveryStatus)
     }
-    assert function_result.table_definitions == [
-        EnumToTable(ORDER_TABLE_NAME, ORDER_DELIVERY_STATUS_COLUMN_NAME, ORDER_DELIVERY_STATUS_ENUM_NAME)
-    ]
+    assert function_result.enum_table_references == {
+        ORDER_DELIVERY_STATUS_ENUM_NAME: (TableReference(ORDER_TABLE_NAME, ORDER_DELIVERY_STATUS_COLUMN_NAME),)
+    }
