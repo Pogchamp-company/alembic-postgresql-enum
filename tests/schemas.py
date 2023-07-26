@@ -4,7 +4,7 @@ from sqlalchemy import MetaData, Table, Column, Integer
 from sqlalchemy.dialects import postgresql
 
 DEFAULT_SCHEMA = 'public'
-USER_TABLE_NAME = 'user'
+USER_TABLE_NAME = 'users'
 USER_STATUS_COLUMN_NAME = 'status'
 USER_STATUS_ENUM_NAME = 'user_status'
 
