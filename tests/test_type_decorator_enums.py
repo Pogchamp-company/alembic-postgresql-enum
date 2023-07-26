@@ -9,8 +9,7 @@ if TYPE_CHECKING:
     from sqlalchemy import Connection
 from sqlalchemy.dialects import postgresql
 
-from alembic_postgresql_enum import get_declared_enums
-from alembic_postgresql_enum.get_enum_data import TableReference
+from alembic_postgresql_enum.get_enum_data import get_declared_enums, TableReference
 from tests.schemas import DEFAULT_SCHEMA
 
 

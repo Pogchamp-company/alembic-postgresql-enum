@@ -2,7 +2,7 @@
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, TYPE_CHECKING, Any, Set
+from typing import Dict, Tuple, TYPE_CHECKING, Any, Set
 
 import sqlalchemy
 from sqlalchemy import MetaData

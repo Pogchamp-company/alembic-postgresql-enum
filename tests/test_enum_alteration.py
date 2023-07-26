@@ -3,10 +3,12 @@ from typing import TYPE_CHECKING
 from alembic import autogenerate
 from alembic.autogenerate import api
 from alembic.operations import ops
+
+from alembic_postgresql_enum.enum_alteration import SyncEnumValuesOp
+
 if TYPE_CHECKING:
     from sqlalchemy import Connection
 
-from alembic_postgresql_enum import SyncEnumValuesOp
 from tests.schemas import get_schema_with_enum_variants, USER_TABLE_NAME, USER_STATUS_ENUM_NAME, \
     USER_STATUS_COLUMN_NAME, DEFAULT_SCHEMA
 from tests.utils.migration_context import create_migration_context
