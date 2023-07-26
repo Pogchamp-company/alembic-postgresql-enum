@@ -1,0 +1,51 @@
+name: Run tests on any Push event
+
+on:
+  push:
+    tags:
+      - '!refs/tags/*'
+    branches:
+      - '*'
+jobs:
+  run_tests:
+    runs-on: [ubuntu-latest]
+    strategy:
+      matrix:
+        sqlalchemy: [ "1.4", "2.0" ]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        ports:
+          # maps tcp port 5432 on service container to the host
+          - 5432:5432
+        env:
+          # required
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install requirements
+        # Устанавливаем зависимости
+        run: pip install -r tests/requirements.txt
+      - name: Install explicit sqlalchemy
+        run: pip install sqlalchemy~=${{ matrix.sqlalchemy }}
+      - name: Run tests
+        run: pytest
+        env:
+          DATABASE_URI: postgresql://postgres:postgres@localhost:5432/postgres

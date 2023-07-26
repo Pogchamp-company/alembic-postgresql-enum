@@ -4,7 +4,7 @@ SQLAlchemy enums.
 
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 import alembic.autogenerate
 import alembic.operations.base
@@ -16,6 +16,8 @@ from .get_enum_data import get_connection, get_defined_enums, get_declared_enums
 
 @alembic.operations.base.Operations.register_operation("sync_enum_values")
 class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
+    operation_name = 'change_enum_variants'
+
     def __init__(
             self,
             schema: str,
@@ -87,6 +89,9 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             for q in query_str.split(';'):
                 conn.execute(sqlalchemy.text(q))
 
+    def to_diff_tuple(self) -> 'Tuple[Any, ...]':
+        return self.operation_name, self.old_values, self.new_values, self.affected_columns
+
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
 def render_sync_enum_value_op(autogen_context, op: SyncEnumValuesOp):
@@ -118,8 +123,8 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
         declared = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
         for name, new_values in declared.enum_definitions.items():
-            old_values = defined.enum_definitions.get(name)
-            if name in defined.enum_definitions and new_values != old_values:
+            old_values = defined.get(name)
+            if name in defined and new_values != old_values:
                 affected_columns = frozenset(
                     (table_definition.table_name, table_definition.column_name)
                     for table_definition in declared.table_definitions

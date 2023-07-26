@@ -1,41 +1,65 @@
-from typing import List
+from abc import ABC, abstractmethod
+from typing import Any, Iterable
+from typing import List, Tuple
 
 import alembic
 
 from .get_enum_data import get_defined_enums, get_declared_enums
 
 
-class CreateEnumOp(alembic.operations.ops.MigrateOperation):
+class EnumOp(alembic.operations.ops.MigrateOperation, ABC):
     def __init__(self,
                  schema: str,
                  name: str,
-                 enum_values: List[str],
-                 should_reverse: bool = False
+                 enum_values: Iterable[str],
                  ):
         self.schema = schema
         self.name = name
         self.enum_values = enum_values
-        self.should_reverse = should_reverse
+
+    @property
+    @abstractmethod
+    def operation_name(self) -> str:
+        pass
+
+    def to_diff_tuple(self) -> 'Tuple[Any, ...]':
+        return self.operation_name, self.name, self.schema, self.enum_values
+
+
+class CreateEnumOp(EnumOp):
+    operation_name = 'create_enum'
+
+    def reverse(self):
+        return DropEnumOp(
+            name=self.name,
+            schema=self.schema,
+            enum_values=self.enum_values,
+        )
+
+
+class DropEnumOp(EnumOp):
+    operation_name = 'drop_enum'
 
     def reverse(self):
         return CreateEnumOp(
             name=self.name,
             schema=self.schema,
             enum_values=self.enum_values,
-            should_reverse=not self.should_reverse
         )
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(CreateEnumOp)
-def render_sync_enum_value_op(autogen_context, op: CreateEnumOp):
-    if op.should_reverse:
-        return f"""
-        sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').drop(op.get_bind())
-        """.strip()
-
+def render_create_enum_op(autogen_context, op: CreateEnumOp):
     return f"""
     sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').create(op.get_bind())
     """.strip()
+
+
+@alembic.autogenerate.render.renderers.dispatch_for(DropEnumOp)
+def render_drop_enum_op(autogen_context, op: DropEnumOp):
+    return f"""
+        sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').drop(op.get_bind())
+        """.strip()
 
 
 @alembic.autogenerate.comparators.dispatch_for("schema")
@@ -52,10 +76,9 @@ def compare_enums(autogen_context, upgrade_ops, schema_names):
         declared = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.dialect)
 
         for name, new_values in declared.enum_definitions.items():
-            if name not in defined.enum_definitions:
+            if name not in defined:
                 upgrade_ops.ops.insert(0, CreateEnumOp(name=name, schema=schema, enum_values=new_values))
 
-        for name, new_values in defined.enum_definitions.items():
+        for name, new_values in defined.items():
             if name not in declared.enum_definitions:
-                upgrade_ops.ops.append(CreateEnumOp(name=name, schema=schema, enum_values=new_values,
-                                                    should_reverse=True))
+                upgrade_ops.ops.append(DropEnumOp(name=name, schema=schema, enum_values=new_values))

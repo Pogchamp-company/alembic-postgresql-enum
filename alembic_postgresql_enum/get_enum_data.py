@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict, List, Tuple
 
 import sqlalchemy
+from sqlalchemy import MetaData
 
 
 @dataclass
@@ -13,14 +14,16 @@ class EnumToTable:
     enum_name: str
 
 
+EnumNamesToValues = Dict[str, Tuple[str]]
+
+
 @dataclass
 class DeclaredEnumValues:
-    # enum name -> tuple of values
-    enum_definitions: Dict[str, Tuple[str]]
+    enum_definitions: EnumNamesToValues
     table_definitions: Optional[List[EnumToTable]] = None
 
 
-def get_defined_enums(conn, schema: str):
+def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
     """
     Return a dict mapping PostgreSQL enumeration types to the set of their
     defined values.
@@ -45,10 +48,10 @@ def get_defined_enums(conn, schema: str):
             t.typtype = 'e'
             AND n.nspname = :schema
     """
-    return DeclaredEnumValues({
+    return {
         r[0]: tuple(r[1])
         for r in conn.execute(sqlalchemy.text(sql), dict(schema=schema))
-    })
+    }
 
 
 def get_enum_values(enum_type: sqlalchemy.Enum, dialect) -> 'Tuple[str, ...]':
@@ -65,7 +68,7 @@ def get_enum_values(enum_type: sqlalchemy.Enum, dialect) -> 'Tuple[str, ...]':
     return tuple(value_processor(value) for value in enum_type.enums)
 
 
-def get_declared_enums(metadata, schema: str, default_schema: str, dialect):
+def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dialect) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy enumeration types to the set of their
     declared values.
