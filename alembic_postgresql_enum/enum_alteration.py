@@ -97,12 +97,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
 def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValuesOp):
-    return "op.sync_enum_values(%r, %r, %r, %r)" % (
-        op.schema,
-        op.name,
-        op.new_values,
-        op.affected_columns
-    )
+    return f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r}, {op.affected_columns!r})"
 
 
 def sync_changed_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,
