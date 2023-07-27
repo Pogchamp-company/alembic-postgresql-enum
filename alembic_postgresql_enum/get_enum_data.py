@@ -2,7 +2,7 @@
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, Tuple, TYPE_CHECKING, Any, Set
+from typing import Dict, Tuple, TYPE_CHECKING, Any, Set, FrozenSet
 
 import sqlalchemy
 from sqlalchemy import MetaData
@@ -21,7 +21,7 @@ class TableReference:
 
 
 EnumNamesToValues = Dict[str, Tuple[str, ...]]
-EnumNamesToTableReferences = Dict[str, Tuple[TableReference, ...]]
+EnumNamesToTableReferences = Dict[str, FrozenSet[TableReference]]
 
 
 @dataclass
@@ -103,9 +103,9 @@ def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dia
             "my_enum": tuple(["a", "b", "c"]),
         },
         enum_table_references: {
-            "my_enum": [
+            "my_enum": {
                 EnumToTable(table_name="my_table", column_name="my_column")
-            ]
+            }
         }
     """
     enum_name_to_values = dict()
@@ -129,7 +129,7 @@ def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dia
 
     return DeclaredEnumValues(
         enum_values=enum_name_to_values,
-        enum_table_references={enum_name: tuple(table_references)
+        enum_table_references={enum_name: frozenset(table_references)
                                for enum_name, table_references
                                in enum_name_to_table_references.items()},
     )

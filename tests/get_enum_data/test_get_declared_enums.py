@@ -16,7 +16,7 @@ def test_with_user_schema():
         USER_STATUS_ENUM_NAME: tuple(enum_variants)
     }
     assert function_result.enum_table_references == {
-        USER_STATUS_ENUM_NAME: (TableReference(USER_TABLE_NAME, USER_STATUS_COLUMN_NAME),)
+        USER_STATUS_ENUM_NAME: frozenset((TableReference(USER_TABLE_NAME, USER_STATUS_COLUMN_NAME),))
     }
 
 

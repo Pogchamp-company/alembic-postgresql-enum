@@ -55,14 +55,14 @@ def get_declared_enum_values_with_orders_and_users() -> DeclaredEnumValues:
             )
         },
         enum_table_references={
-            'user_status_enum': (
+            'user_status_enum': frozenset((
                 TableReference('users', 'user_status'),
                 TableReference('users', 'last_user_status'),
                 TableReference('orders', 'user_status'),
-            ),
-            'order_status_enum': (
+            )),
+            'order_status_enum': frozenset((
                 TableReference('orders', 'order_status'),
-            )
+            ))
         }
     )
 
