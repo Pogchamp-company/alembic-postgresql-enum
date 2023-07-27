@@ -16,12 +16,12 @@ class TableReference:
     table_name: str
     column_name: str
 
-    def to_tuple(self):
+    def to_tuple(self) -> Tuple[str, str]:
         return self.table_name, self.column_name
 
 
-EnumNamesToValues = Dict[str, Tuple[str]]
-EnumNamesToTableReferences = Dict[str, Tuple[TableReference]]
+EnumNamesToValues = Dict[str, Tuple[str, ...]]
+EnumNamesToTableReferences = Dict[str, Tuple[TableReference, ...]]
 
 
 @dataclass
@@ -96,7 +96,7 @@ def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dia
         Schema name (e.g. "public").
     :param default_schema:
         Default schema name, likely will be "public"
-    :param dialect:
+    :param dialect: todo may be a good idea to get rid of it as library only supports postgresql
         Current sql dialect
     :returns DeclaredEnumValues:
         enum_values: {
