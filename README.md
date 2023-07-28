@@ -114,15 +114,13 @@ So adjust migration like that
 
 ```python
 def upgrade():
-    op.sync_enum_values('public', 'myenum', ['one', 'two', 'tree', 'three'], [('example_table', 'enum_field')])
-    op.execute("""UPDATE example_table SET enum_field = 'three' WHERE enum_field = 'tree'""")
-    op.sync_enum_values('public', 'myenum', ['one', 'two', 'three'], [('example_table', 'enum_field')])
+    op.sync_enum_values('public', 'myenum', ['one', 'two', 'three'], [('example_table', 'enum_field')],
+                        enum_values_to_rename=[('tree', 'three')])
 
 
 def downgrade():
-    op.sync_enum_values('public', 'myenum', ['one', 'two', 'tree', 'three'], [('example_table', 'enum_field')])
-    op.execute("""UPDATE example_table SET enum_field = 'tree' WHERE enum_field = 'three'""")
-    op.sync_enum_values('public', 'myenum', ['one', 'two', 'tree'], [('example_table', 'enum_field')])
+    op.sync_enum_values('public', 'myenum', ['one', 'two', 'tree'], [('example_table', 'enum_field')],
+                        enum_values_to_rename=[('three', 'tree')])
 ```
 
 Expand old values with new one, update all old values with new one, remove old enum value 

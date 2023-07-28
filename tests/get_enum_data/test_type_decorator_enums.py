@@ -1,16 +1,12 @@
 import enum
 from copy import copy
 from enum import Enum
-from typing import TYPE_CHECKING
 
 import sqlalchemy.types
 from sqlalchemy import Table, Column, MetaData
-if TYPE_CHECKING:
-    from sqlalchemy import Connection
 from sqlalchemy.dialects import postgresql
 
-from alembic_postgresql_enum import get_declared_enums
-from alembic_postgresql_enum.get_enum_data import EnumToTable
+from alembic_postgresql_enum.get_enum_data import get_declared_enums, TableReference
 from tests.schemas import DEFAULT_SCHEMA
 
 
@@ -72,15 +68,15 @@ def get_schema_with_custom_enum() -> MetaData:
     return schema
 
 
-def test_get_declared_enums_for_custom_enum(connection: 'Connection'):
+def test_get_declared_enums_for_custom_enum():
     declared_schema = get_schema_with_custom_enum()
 
     function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, postgresql.dialect)
 
-    assert function_result.enum_definitions == {
+    assert function_result.enum_values == {
         # All declared enum variants must be taken from OrderDeliveryStatus values, see ValuesEnum
         ORDER_DELIVERY_STATUS_ENUM_NAME: tuple(enum_item.value for enum_item in OrderDeliveryStatus)
     }
-    assert function_result.table_definitions == [
-        EnumToTable(ORDER_TABLE_NAME, ORDER_DELIVERY_STATUS_COLUMN_NAME, ORDER_DELIVERY_STATUS_ENUM_NAME)
-    ]
+    assert function_result.enum_table_references == {
+        ORDER_DELIVERY_STATUS_ENUM_NAME: frozenset((TableReference(ORDER_TABLE_NAME, ORDER_DELIVERY_STATUS_COLUMN_NAME),))
+    }

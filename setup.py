@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='alembic-postgresql-enum',
-    version='0.1.3',
+    version='0.1.4',
     license='MIT',
     author="RustyGuard",
     packages=find_packages('src'),
