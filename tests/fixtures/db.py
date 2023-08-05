@@ -18,7 +18,10 @@ def connection() -> Generator:
     engine = create_engine(database_uri)
     with engine.connect() as conn:
         yield conn
-        conn.execute(sqlalchemy.text('''
-            DROP SCHEMA public CASCADE;
-            CREATE SCHEMA public;
-        '''))
+        try:
+            conn.execute(sqlalchemy.text('''
+                DROP SCHEMA public CASCADE;
+                CREATE SCHEMA public;
+            '''))
+        except:
+            pass

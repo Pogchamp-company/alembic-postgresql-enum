@@ -12,6 +12,7 @@ import alembic.operations.ops
 import sqlalchemy
 from alembic.autogenerate.api import AutogenContext
 from alembic.operations.ops import UpgradeOps
+from sqlalchemy.exc import DataError
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
@@ -113,8 +114,13 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
         query_str += f"""DROP TYPE {temporary_enum_name}"""
 
-        for q in query_str.split(';'):
-            connection.execute(sqlalchemy.text(q))
+        try:
+            for q in query_str.split(';'):
+                connection.execute(sqlalchemy.text(q))
+        except DataError as error:
+            raise ValueError(f'''New enum values can not be set due to some row containing reference to old enum value.
+            Please consider using enum_values_to_rename parameter or updating/deleting these row before calling sync_enum_values.
+            ''') from error
 
     @classmethod
     def _update_affected_columns(cls, connection: 'Connection',
