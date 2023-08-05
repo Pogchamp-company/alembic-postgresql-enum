@@ -192,3 +192,5 @@ def downgrade():
 ```
 
 Do not forget to switch places old and new values for downgrade
+
+All defaults in postgres will be renamed automatically as well
