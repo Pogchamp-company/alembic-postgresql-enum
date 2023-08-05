@@ -186,7 +186,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValuesOp):
     return (f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r},\n"
             f"                    {op.affected_columns!r},\n"
-            f"                    enum_values_to_rename=())")
+            f"                    enum_values_to_rename=[])")
 
 
 def sync_changed_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,
