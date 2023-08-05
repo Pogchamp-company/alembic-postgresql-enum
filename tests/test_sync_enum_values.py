@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+import pytest
 import sqlalchemy
 from alembic.ddl import postgresql
 from alembic.operations import Operations
@@ -133,3 +134,24 @@ def test_sync_enum_values_with_server_default_renamed(connection: 'Connection'):
     assert defined == {
         'order_status': tuple(new_enum_variants)
     }
+
+
+def test_sync_enum_values_raise_custom_exception(connection: 'Connection'):
+    old_enum_variants = ["active", "passive", "banned"]
+
+    database_schema = get_schema_with_enum_variants(old_enum_variants)
+    database_schema.create_all(connection)
+    connection.execute(sqlalchemy.text(f'''
+        INSERT INTO {USER_TABLE_NAME} ({USER_STATUS_COLUMN_NAME}) VALUES ('active'), ('passive'), ('banned')
+    '''))
+
+    new_enum_variants = old_enum_variants.copy()
+    new_enum_variants.remove('banned')
+
+    mc = MigrationContext.configure(connection)
+    ops = Operations(mc)
+
+    with pytest.raises(ValueError):
+        ops.sync_enum_values(DEFAULT_SCHEMA, USER_STATUS_ENUM_NAME, new_enum_variants,
+                             ((USER_TABLE_NAME, USER_STATUS_COLUMN_NAME),),
+                             enum_values_to_rename=[])

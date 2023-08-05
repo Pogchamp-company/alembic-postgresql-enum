@@ -12,6 +12,7 @@ import alembic.operations.ops
 import sqlalchemy
 from alembic.autogenerate.api import AutogenContext
 from alembic.operations.ops import UpgradeOps
+from sqlalchemy.exc import DataError
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
@@ -23,14 +24,13 @@ from .get_enum_data import get_connection, EnumNamesToValues, EnumNamesToTableRe
 class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
     operation_name = 'change_enum_variants'
 
-    def __init__(
-            self,
-            schema: str,
-            name: str,
-            old_values: List[str],
-            new_values: List[str],
-            affected_columns: 'List[Tuple[str, str]]',
-    ):
+    def __init__(self,
+                 schema: str,
+                 name: str,
+                 old_values: List[str],
+                 new_values: List[str],
+                 affected_columns: 'List[Tuple[str, str]]'
+                 ):
         self.schema = schema
         self.name = name
         self.old_values = old_values
@@ -50,22 +50,29 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         )
 
     @classmethod
-    def _get_column_default(cls, connection: 'Connection',
-                            schema: str, table_name: str, column_name: str) -> Union[str, None]:
+    def _get_column_default(cls,
+                            connection: 'Connection',
+                            schema: str,
+                            table_name: str,
+                            column_name: str
+                            ) -> Union[str, None]:
         """Result example: "'active'::order_status" """
-        default_value = connection.execute(sqlalchemy.text(f'''
+        default_value = connection.execute(sqlalchemy.text(f"""
             SELECT column_default
             FROM information_schema.columns
             WHERE 
                 table_schema = '{schema}' AND 
                 table_name = '{table_name}' AND 
                 column_name = '{column_name}';
-        ''')).scalar()
+        """)).scalar()
         return default_value
 
     @classmethod
-    def _rename_default_if_required(cls, default_value: str, enum_name: str,
-                                    enum_values_to_rename: 'List[Tuple[str, str]]'):
+    def _rename_default_if_required(cls,
+                                    default_value: str,
+                                    enum_name: str,
+                                    enum_values_to_rename: 'List[Tuple[str, str]]'
+                                    ) -> str:
         column_default_value = default_value[1:default_value.find("'::")]
 
         for old_value, new_value in enum_values_to_rename:
@@ -75,7 +82,59 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         return f"'{column_default_value}'::{enum_name}"
 
     @classmethod
-    def _set_enum_values(cls, connection: 'Connection',
+    def _drop_default(cls,
+                      connection: 'Connection',
+                      schema: str,
+                      table_name: str,
+                      column_name: str
+                      ):
+        connection.execute(sqlalchemy.text(
+            f"""ALTER TABLE {schema}.{table_name} ALTER COLUMN {column_name} DROP DEFAULT;"""
+        ))
+
+    @classmethod
+    def _cast_old_enum_type_to_new(cls,
+                                   connection: 'Connection',
+                                   schema: str,
+                                   table_name: str,
+                                   column_name: str,
+                                   enum_type_name: str,
+                                   enum_values_to_rename: 'List[Tuple[str, str]]'
+                                   ):
+        if enum_values_to_rename:
+            connection.execute(sqlalchemy.text(
+                f"""ALTER TABLE {schema}.{table_name} ALTER COLUMN {column_name} TYPE {enum_type_name} 
+                    USING CASE 
+                    {' '.join(
+                    f"WHEN {column_name}::text = '{old_value}' THEN '{new_value}'"
+                        for old_value, new_value in enum_values_to_rename)}
+                    
+                    ELSE {column_name}::text::{enum_type_name}
+                    END;
+                    """
+            ))
+        else:
+            connection.execute(sqlalchemy.text(
+                f"""ALTER TABLE {schema}.{table_name} ALTER COLUMN {column_name} TYPE {enum_type_name} 
+                    USING {column_name}::text::{enum_type_name};
+                    """
+            ))
+
+    @classmethod
+    def _set_default(cls,
+                     connection: 'Connection',
+                     schema: str,
+                     table_name: str,
+                     column_name: str,
+                     default_value: str
+                     ):
+        connection.execute(sqlalchemy.text(
+            f"""ALTER TABLE {schema}.{table_name} ALTER COLUMN {column_name} SET DEFAULT {default_value};"""
+        ))
+
+    @classmethod
+    def _set_enum_values(cls,
+                         connection: 'Connection',
                          schema: str,
                          enum_name: str,
                          new_values: List[str],
@@ -85,59 +144,48 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         enum_type_name = f"{schema}.{enum_name}"
         temporary_enum_name = f"{enum_name}_old"
 
-        query_str = (
+        connection.execute(sqlalchemy.text(
             f"""ALTER TYPE {enum_type_name} RENAME TO {temporary_enum_name};"""
+        ))
+        connection.execute(sqlalchemy.text(
             f"""CREATE TYPE {enum_type_name} AS ENUM({', '.join(f"'{value}'" for value in new_values)});"""
-        )
+        ))
 
         for table_name, column_name in affected_columns:
             column_default = cls._get_column_default(connection, schema, table_name, column_name)
 
             if column_default is not None:
-                query_str += (
-                    f"""ALTER TABLE {table_name} ALTER COLUMN {column_name} DROP DEFAULT;"""
-                )
+                cls._drop_default(connection, schema, table_name, column_name)
 
-            query_str += (
-                f"""ALTER TABLE {table_name} ALTER COLUMN {column_name} TYPE {enum_type_name} 
-                    USING {column_name}::text::{enum_type_name};"""
-            )
+            try:
+                cls._cast_old_enum_type_to_new(connection,
+                                               schema, table_name, column_name, enum_type_name, enum_values_to_rename)
+            except DataError as error:
+                raise ValueError(
+                    f'''New enum values can not be set due to some row containing reference to old enum value.
+                        Please consider using enum_values_to_rename parameter or "
+                    f"updating/deleting these row before calling sync_enum_values.'''
+                ) from error
 
             if column_default is not None:
                 column_default = cls._rename_default_if_required(column_default, enum_name,
                                                                  enum_values_to_rename)
 
-                query_str += (
-                    f"""ALTER TABLE {table_name} ALTER COLUMN {column_name} SET DEFAULT {column_default};"""
-                )
+                cls._set_default(connection, schema, table_name, column_name, column_default)
 
-        query_str += f"""DROP TYPE {temporary_enum_name}"""
-
-        for q in query_str.split(';'):
-            connection.execute(sqlalchemy.text(q))
+        connection.execute(sqlalchemy.text(
+            f"""DROP TYPE {temporary_enum_name};"""
+        ))
 
     @classmethod
-    def _update_affected_columns(cls, connection: 'Connection',
-                                 schema: str,
-                                 affected_columns: 'List[Tuple[str, str]]',
-                                 enum_values_to_rename: 'List[Tuple[str, str]]'
-                                 ):
-        for (old_value, new_value) in enum_values_to_rename:
-            for table_name, column_name in affected_columns:
-                connection.execute(sqlalchemy.text(f'''
-                    UPDATE {schema}.{table_name} SET {column_name} = '{new_value}' WHERE {column_name} = '{old_value}'
-                '''))
-
-    @classmethod
-    def sync_enum_values(
-            cls,
-            operations,
-            schema: str,
-            enum_name: str,
-            new_values: List[str],
-            affected_columns: 'List[Tuple[str, str]]' = None,
-            enum_values_to_rename: 'Iterable[Tuple[str, str]]' = tuple()
-    ):
+    def sync_enum_values(cls,
+                         operations,
+                         schema: str,
+                         enum_name: str,
+                         new_values: List[str],
+                         affected_columns: 'List[Tuple[str, str]]',
+                         enum_values_to_rename: 'Iterable[Tuple[str, str]]' = tuple()
+                         ):
         """
         Replace enum values with `new_values`
         :param operations:
@@ -163,19 +211,6 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         enum_values_to_rename = list(enum_values_to_rename)
 
         with get_connection(operations) as connection:
-            if enum_values_to_rename:
-                for (old_value, _) in enum_values_to_rename:
-                    new_values.append(old_value)
-                cls._set_enum_values(connection, schema, enum_name, new_values, affected_columns, enum_values_to_rename)
-
-                cls._update_affected_columns(connection, schema, affected_columns, enum_values_to_rename)
-
-                for (old_value, _) in enum_values_to_rename:
-                    new_values.remove(old_value)
-                cls._set_enum_values(connection, schema, enum_name, new_values, affected_columns, enum_values_to_rename)
-
-                return
-
             cls._set_enum_values(connection, schema, enum_name, new_values, affected_columns, enum_values_to_rename)
 
     def to_diff_tuple(self) -> 'Tuple[Any, ...]':
@@ -189,9 +224,12 @@ def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValue
             f"                    enum_values_to_rename=[])")
 
 
-def sync_changed_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,
+def sync_changed_enums(defined_enums: EnumNamesToValues,
+                       declared_enums: EnumNamesToValues,
                        table_references: EnumNamesToTableReferences,
-                       schema: str, upgrade_ops: UpgradeOps):
+                       schema: str,
+                       upgrade_ops: UpgradeOps
+                       ):
     for enum_name, new_values in declared_enums.items():
         if enum_name not in defined_enums:
             # That is work for create_new_enums function
