@@ -121,19 +121,24 @@ def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dia
 
     for table in metadata.tables.values():
         for column in table.columns:
+            # if column is array of enums
+            column_type = column.type
+            if isinstance(column_type, sqlalchemy.ARRAY):
+                column_type = column_type.item_type
+
             # if column is in different schema
-            if not hasattr(column.type, 'schema'):
+            if not hasattr(column_type, 'schema'):
                 continue
-            if schema != (column.type.schema or default_schema):
-                continue
-
-            if not column_type_is_enum(column.type):
+            if schema != (column_type.schema or default_schema):
                 continue
 
-            if column.type.name not in enum_name_to_values:
-                enum_name_to_values[column.type.name] = get_enum_values(column.type, dialect)
+            if not column_type_is_enum(column_type):
+                continue
 
-            enum_name_to_table_references[column.type.name].add(TableReference(table.name, column.name))
+            if column_type.name not in enum_name_to_values:
+                enum_name_to_values[column_type.name] = get_enum_values(column_type, dialect)
+
+            enum_name_to_table_references[column_type.name].add(TableReference(table.name, column.name))
 
     return DeclaredEnumValues(
         enum_values=enum_name_to_values,
