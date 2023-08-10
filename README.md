@@ -11,6 +11,8 @@ Alembic will now automatically:
 - Reorder enum values
 - Delete unused enums from schema
 
+If you are curious to know about analogs and reasons for this library to exist see [alternatives and motivation](docs/alternatives.md)
+
 ## Usage
 
 Install library:
