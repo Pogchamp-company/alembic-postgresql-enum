@@ -14,6 +14,8 @@ from alembic.autogenerate.api import AutogenContext
 from alembic.operations.ops import UpgradeOps
 from sqlalchemy.exc import DataError
 
+from .sql_commands.comparison_operators import create_comparison_operators, drop_comparison_operators
+
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
@@ -106,8 +108,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 f"""ALTER TABLE {schema}.{table_name} ALTER COLUMN {column_name} TYPE {enum_type_name} 
                     USING CASE 
                     {' '.join(
-                    f"WHEN {column_name}::text = '{old_value}' THEN '{new_value}'"
-                        for old_value, new_value in enum_values_to_rename)}
+                    f"WHEN {column_name}::text = '{old_value}' THEN '{new_value}'::{enum_type_name}"
+                    for old_value, new_value in enum_values_to_rename)}
                     
                     ELSE {column_name}::text::{enum_type_name}
                     END;
@@ -151,6 +153,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             f"""CREATE TYPE {enum_type_name} AS ENUM({', '.join(f"'{value}'" for value in new_values)});"""
         ))
 
+        create_comparison_operators(connection, schema, enum_name, temporary_enum_name, enum_values_to_rename)
+
         for table_name, column_name in affected_columns:
             column_default = cls._get_column_default(connection, schema, table_name, column_name)
 
@@ -173,6 +177,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
                 cls._set_default(connection, schema, table_name, column_name, column_default)
 
+        drop_comparison_operators(connection, schema, enum_name, temporary_enum_name)
         connection.execute(sqlalchemy.text(
             f"""DROP TYPE {temporary_enum_name};"""
         ))
