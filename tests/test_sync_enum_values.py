@@ -1,18 +1,15 @@
-from typing import TYPE_CHECKING
-
 import pytest
 import sqlalchemy
-from alembic.ddl import postgresql
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 from sqlalchemy import Table, Column, Integer, MetaData
-
 from sqlalchemy.engine import Connection
 
 from alembic_postgresql_enum import get_defined_enums
 from alembic_postgresql_enum.enum_alteration import SyncEnumValuesOp
-from tests.schemas import get_schema_with_enum_variants, DEFAULT_SCHEMA, USER_STATUS_ENUM_NAME, USER_STATUS_COLUMN_NAME, \
-    USER_TABLE_NAME
+from tests.schemas import (get_schema_with_enum_variants, DEFAULT_SCHEMA,
+                           USER_STATUS_ENUM_NAME, USER_STATUS_COLUMN_NAME,
+                           USER_TABLE_NAME)
 
 
 def test_sync_enum_values_with_new_value(connection: 'Connection'):
