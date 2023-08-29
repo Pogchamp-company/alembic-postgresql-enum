@@ -3,18 +3,26 @@ from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Dict, Tuple, TYPE_CHECKING, Any, Set, FrozenSet
+from enum import Enum as PyEnum
 
 import sqlalchemy
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, Enum
+from sqlalchemy.dialects.postgresql import ARRAY
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Dialect
+
+
+class ColumnType(PyEnum):
+    COMMON = Enum
+    ARRAY = ARRAY
 
 
 @dataclass(frozen=True)
 class TableReference:
     table_name: str
     column_name: str
+    column_type: ColumnType = ColumnType.COMMON
 
     def to_tuple(self) -> Tuple[str, str]:
         return self.table_name, self.column_name
@@ -56,8 +64,8 @@ def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
             AND n.nspname = :schema
     """
     return {
-        r[0]: tuple(r[1])
-        for r in conn.execute(sqlalchemy.text(sql), dict(schema=schema))
+        name: tuple(values)
+        for name, values in conn.execute(sqlalchemy.text(sql), dict(schema=schema))
     }
 
 
