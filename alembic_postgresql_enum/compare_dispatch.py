@@ -4,6 +4,7 @@ import alembic
 from alembic.autogenerate.api import AutogenContext
 from alembic.operations.ops import UpgradeOps
 
+from alembic_postgresql_enum.add_create_type_false import add_create_type_false
 from alembic_postgresql_enum.enum_alteration import sync_changed_enums
 from alembic_postgresql_enum.enum_creation import create_new_enums
 from alembic_postgresql_enum.enum_deletion import drop_unused_enums
@@ -20,6 +21,8 @@ def compare_enums(autogen_context: AutogenContext, upgrade_ops: UpgradeOps, sche
     Enums that don't exist in the database yet are ignored, since
     SQLAlchemy/Alembic will create them as part of the usual migration process.
     """
+    add_create_type_false(upgrade_ops)
+
     for schema in schema_names:
         default_schema = autogen_context.dialect.default_schema_name
         if schema is None:
