@@ -1,18 +1,17 @@
-from typing import TYPE_CHECKING
-
 import pytest
 import sqlalchemy
-from alembic.ddl import postgresql
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 from sqlalchemy import Table, Column, Integer, MetaData
-
 from sqlalchemy.engine import Connection
 
 from alembic_postgresql_enum import get_defined_enums
 from alembic_postgresql_enum.enum_alteration import SyncEnumValuesOp
-from tests.schemas import get_schema_with_enum_variants, DEFAULT_SCHEMA, USER_STATUS_ENUM_NAME, USER_STATUS_COLUMN_NAME, \
-    USER_TABLE_NAME
+from alembic_postgresql_enum.get_enum_data import TableReference, ColumnType
+from tests.schemas import (get_schema_with_enum_variants, DEFAULT_SCHEMA,
+                           USER_STATUS_ENUM_NAME, USER_STATUS_COLUMN_NAME,
+                           USER_TABLE_NAME, get_schema_with_enum_in_array_variants, CAR_TABLE_NAME,
+                           CAR_COLORS_COLUMN_NAME, CAR_COLORS_ENUM_NAME)
 
 
 def test_sync_enum_values_with_new_value(connection: 'Connection'):
@@ -128,7 +127,7 @@ def test_sync_enum_values_with_server_default_renamed(connection: 'Connection'):
 
     defined = get_defined_enums(connection, DEFAULT_SCHEMA)
     order_status_default = SyncEnumValuesOp._get_column_default(connection, DEFAULT_SCHEMA,
-                                                                'orders', 'status')
+                                                                TableReference('orders', 'status'))
 
     assert order_status_default == "'inactive'::order_status"
     assert defined == {
@@ -155,3 +154,38 @@ def test_sync_enum_values_raise_custom_exception(connection: 'Connection'):
         ops.sync_enum_values(DEFAULT_SCHEMA, USER_STATUS_ENUM_NAME, new_enum_variants,
                              ((USER_TABLE_NAME, USER_STATUS_COLUMN_NAME),),
                              enum_values_to_rename=[])
+
+
+def test_sync_enum_values_with_renamed_value_with_array(connection: 'Connection'):
+    old_enum_variants = ['black', 'white', 'red', 'green', 'blue', 'violet', 'other']
+
+    database_schema = get_schema_with_enum_in_array_variants(old_enum_variants)
+    database_schema.create_all(connection)
+    connection.execute(sqlalchemy.text(f'''
+        INSERT INTO {CAR_TABLE_NAME} ({CAR_COLORS_COLUMN_NAME}) VALUES ('{{"black"}}'), ('{{"white", "violet"}}')
+    '''))
+
+    new_enum_variants = old_enum_variants.copy()
+    new_enum_variants.remove('violet')
+    new_enum_variants.append('purple')
+
+    mc = MigrationContext.configure(connection)
+    ops = Operations(mc)
+
+    ops.sync_enum_values(DEFAULT_SCHEMA, CAR_COLORS_ENUM_NAME, new_enum_variants,
+                         ((CAR_TABLE_NAME, CAR_COLORS_COLUMN_NAME, ColumnType.ARRAY),),
+                         enum_values_to_rename=[
+                             ('violet', 'purple')
+                         ])
+
+    defined = get_defined_enums(connection, DEFAULT_SCHEMA)
+
+    assert defined == {
+        CAR_COLORS_ENUM_NAME: tuple(new_enum_variants)
+    }
+
+    users_entries = connection.execute(sqlalchemy.text(f'''
+        SELECT {CAR_COLORS_COLUMN_NAME} FROM {CAR_TABLE_NAME}
+    ''')).scalars().all()
+
+    assert users_entries == ['{black}', '{white,purple}']
