@@ -31,7 +31,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                  name: str,
                  old_values: List[str],
                  new_values: List[str],
-                 affected_columns: 'List[Tuple[str, str]]'
+                 affected_columns: 'List[Union[Tuple[str, str], Tuple[str, str, ColumnType]]]'
                  ):
         self.schema = schema
         self.name = name
@@ -248,9 +248,19 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
     def to_diff_tuple(self) -> 'Tuple[Any, ...]':
         return self.operation_name, self.old_values, self.new_values, self.affected_columns
 
+    @property
+    def is_column_type_import_needed(self) -> bool:
+        for affected_column_tuple in self.affected_columns:
+            if len(affected_column_tuple) == 3:
+                return True
+        return False
+
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
 def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValuesOp):
+    if op.is_column_type_import_needed:
+        autogen_context.imports.add('from alembic_postgresql_enum import ColumnType')
+
     return (f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r},\n"
             f"                    {op.affected_columns!r},\n"
             f"                    enum_values_to_rename=[])")

@@ -2,7 +2,7 @@
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, Tuple, TYPE_CHECKING, Any, Set, FrozenSet
+from typing import Dict, Tuple, TYPE_CHECKING, Any, Set, FrozenSet, Union
 from enum import Enum as PyEnum
 
 import sqlalchemy
@@ -17,6 +17,9 @@ class ColumnType(PyEnum):
     COMMON = Enum
     ARRAY = ARRAY
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
 
 @dataclass(frozen=True)
 class TableReference:
@@ -24,8 +27,10 @@ class TableReference:
     column_name: str
     column_type: ColumnType = ColumnType.COMMON
 
-    def to_tuple(self) -> Tuple[str, str]:
-        return self.table_name, self.column_name
+    def to_tuple(self) -> Union[Tuple[str, str], Tuple[str, str, ColumnType]]:
+        if self.column_type == ColumnType.COMMON:
+            return self.table_name, self.column_name
+        return self.table_name, self.column_name, self.column_type
 
 
 EnumNamesToValues = Dict[str, Tuple[str, ...]]
