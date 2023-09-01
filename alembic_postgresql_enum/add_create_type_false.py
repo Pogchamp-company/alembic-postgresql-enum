@@ -30,7 +30,6 @@ def add_create_type_false(upgrade_ops: UpgradeOps):
     for operations_group in upgrade_ops.ops:
         if isinstance(operations_group, ModifyTableOps):
             for operation in operations_group.ops:
-                print(operation)
                 if isinstance(operation, AddColumnOp):
                     column: Column = operation.column
 
