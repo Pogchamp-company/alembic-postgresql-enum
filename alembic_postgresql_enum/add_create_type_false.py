@@ -1,4 +1,4 @@
-from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp, DropColumnOp
+from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp, DropColumnOp, DropTableOp
 from sqlalchemy import Column
 from sqlalchemy.dialects import postgresql
 
@@ -43,5 +43,10 @@ def add_create_type_false(upgrade_ops: UpgradeOps):
 
         elif isinstance(operations_group, CreateTableOp):
             for column in operations_group.columns:
+                if isinstance(column, Column):
+                    inject_repr_into_enums(column)
+
+        elif isinstance(operations_group, DropTableOp):
+            for column in operations_group._reverse.columns:
                 if isinstance(column, Column):
                     inject_repr_into_enums(column)
