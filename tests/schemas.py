@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import List, DefaultDict, Any, Set, Tuple
 
 from sqlalchemy import MetaData, Table, Column, Integer
 from sqlalchemy.dialects import postgresql
@@ -53,6 +53,17 @@ def get_schema_without_enum() -> MetaData:
 
     return schema
 
+def get_car_schema_without_enum() -> MetaData:
+    schema = MetaData()
+
+    Table(
+        CAR_TABLE_NAME,
+        schema,
+        Column("id", Integer, primary_key=True),
+    )
+
+    return schema
+
 
 def get_declared_enum_values_with_orders_and_users() -> DeclaredEnumValues:
     return DeclaredEnumValues(
@@ -97,7 +108,7 @@ def _enum_column_factory(target: DeclaredEnumValues, column_name: str, enum_name
 def get_schema_by_declared_enum_values(target: DeclaredEnumValues) -> MetaData:
     schema = MetaData()
 
-    tables_to_columns = defaultdict(set[tuple[str, str, ColumnType]])
+    tables_to_columns: DefaultDict[Any, Set[Tuple[str, str, ColumnType]]] = defaultdict(set)
     for enum_name, references in target.enum_table_references.items():
         for reference in references:
             tables_to_columns[reference.table_name].add((reference.column_name, enum_name, reference.column_type))

@@ -215,7 +215,7 @@ def test_add_new_enum_value_diff_tuple_with_array(connection: 'Connection'):
 
 def test_remove_enum_value_diff_tuple_with_array(connection: 'Connection'):
     """Check that enum variants are updated when new variant is removed"""
-    old_enum_variants = ['black', 'white', 'red', 'green', 'blue', 'other']
+    old_enum_variants = ['black', 'white', 'red', 'green', 'blue', 'violet', 'other']
 
     database_schema = get_schema_with_enum_in_array_variants(old_enum_variants)
     database_schema.create_all(connection)
