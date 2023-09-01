@@ -32,7 +32,15 @@ It lacked the ability to delete and rename enum values, which was critical.
 
 Also, the order of values was being lost, which made the comparison of values incorrect. 
 
+## Unsolved problem
+
 Another problem not solved by the above-mentioned libraries is the creation and deletion of enums themselves.
+
+- Enum is created by op.create_table, but DOES NOT being dropped by op.drop_table
+- Enum is not created when op.add_column is called with fresh enum
+- Enum is not dropped when it is unused
+
+These issues are also fixed by our library
 
 ## Conclusion
 
