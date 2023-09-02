@@ -1,3 +1,5 @@
+import logging
+
 import alembic
 from alembic.autogenerate.api import AutogenContext
 from alembic.operations.ops import UpgradeOps
@@ -18,6 +20,9 @@ class CreateEnumOp(EnumOp):
         )
 
 
+log = logging.getLogger(__name__)
+
+
 @alembic.autogenerate.render.renderers.dispatch_for(CreateEnumOp)
 def render_create_enum_op(autogen_context: AutogenContext, op: CreateEnumOp):
     return f"""
@@ -32,4 +37,5 @@ def create_new_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNames
     """
     for name, new_values in declared_enums.items():
         if name not in defined_enums:
+            log.info("Detected added enum %r with values %r", name, new_values)
             upgrade_ops.ops.insert(0, CreateEnumOp(name=name, schema=schema, enum_values=new_values))

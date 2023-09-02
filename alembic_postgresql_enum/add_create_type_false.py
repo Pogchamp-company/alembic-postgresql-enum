@@ -1,3 +1,5 @@
+import logging
+
 from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp, DropColumnOp, DropTableOp
 from sqlalchemy import Column
 from sqlalchemy.dialects import postgresql
@@ -19,10 +21,15 @@ class ReprWorkaround(postgresql.ENUM):
 def inject_repr_into_enums(column: Column):
     """Swap postgresql.ENUM class to ReprWorkaround for the column type"""
     if isinstance(column.type, postgresql.ENUM):
+        if column.type.create_type:
+            log.info("create_type=False injected into %r", column.type.name)
         replacement_enum_type = column.type
         replacement_enum_type.__class__ = ReprWorkaround
 
         column.type = replacement_enum_type
+
+
+log = logging.getLogger(__name__)
 
 
 def add_create_type_false(upgrade_ops: UpgradeOps):

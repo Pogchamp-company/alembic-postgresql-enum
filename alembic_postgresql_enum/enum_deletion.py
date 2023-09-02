@@ -1,3 +1,5 @@
+import logging
+
 import alembic
 from alembic.autogenerate.api import AutogenContext
 from alembic.operations.ops import UpgradeOps
@@ -25,6 +27,9 @@ def render_drop_enum_op(autogen_context: AutogenContext, op: DropEnumOp):
         """.strip()
 
 
+log = logging.getLogger(__name__)
+
+
 def drop_unused_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,
                       schema: str, upgrade_ops: UpgradeOps):
     """
@@ -32,4 +37,5 @@ def drop_unused_enums(defined_enums: EnumNamesToValues, declared_enums: EnumName
     """
     for name, new_values in defined_enums.items():
         if name not in declared_enums:
+            log.info("Detected unused enum %r with values %r", name, new_values)
             upgrade_ops.ops.append(DropEnumOp(name=name, schema=schema, enum_values=new_values))

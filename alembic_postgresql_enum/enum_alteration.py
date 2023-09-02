@@ -3,7 +3,7 @@ Alembic extension to generate ALTER TYPE .. ADD VALUE statements to update
 SQLAlchemy enums.
 
 """
-
+import logging
 from typing import List, Tuple, Any, Iterable, TYPE_CHECKING, Union
 
 import alembic.autogenerate
@@ -266,6 +266,9 @@ def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValue
             f"                    enum_values_to_rename=[])")
 
 
+log = logging.getLogger(__name__)
+
+
 def sync_changed_enums(defined_enums: EnumNamesToValues,
                        declared_enums: EnumNamesToValues,
                        table_references: EnumNamesToTableReferences,
@@ -283,6 +286,8 @@ def sync_changed_enums(defined_enums: EnumNamesToValues,
             # Enum definition and declaration are in sync
             continue
 
+        log.info("Detected changed enum values in %r\nWas: %r\nBecome^ %r", enum_name,
+                 list(old_values), list(new_values))
         affected_columns = table_references[enum_name]
         op = SyncEnumValuesOp(schema, enum_name, list(old_values), list(new_values),
                               [column_reference.to_tuple() for column_reference in affected_columns])
