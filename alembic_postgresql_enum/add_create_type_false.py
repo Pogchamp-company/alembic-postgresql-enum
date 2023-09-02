@@ -1,5 +1,6 @@
 import logging
 
+import sqlalchemy
 from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp, DropColumnOp, DropTableOp
 from sqlalchemy import Column
 from sqlalchemy.dialects import postgresql
@@ -20,6 +21,9 @@ class ReprWorkaround(postgresql.ENUM):
 
 def inject_repr_into_enums(column: Column):
     """Swap postgresql.ENUM class to ReprWorkaround for the column type"""
+    if column.type.__class__ == sqlalchemy.Enum:
+        log.info("%r converted into postgresql.ENUM", column.type)
+        column.type = eval(repr(column.type).replace('Enum', 'postgresql.ENUM'))
     if isinstance(column.type, postgresql.ENUM):
         if column.type.create_type:
             log.info("create_type=False injected into %r", column.type.name)
