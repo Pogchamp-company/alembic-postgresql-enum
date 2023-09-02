@@ -27,7 +27,7 @@ def render_drop_enum_op(autogen_context: AutogenContext, op: DropEnumOp):
         """.strip()
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(f'alembic.{__name__}')
 
 
 def drop_unused_enums(defined_enums: EnumNamesToValues, declared_enums: EnumNamesToValues,

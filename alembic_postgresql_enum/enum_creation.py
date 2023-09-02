@@ -20,7 +20,7 @@ class CreateEnumOp(EnumOp):
         )
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(f'alembic.{__name__}')
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(CreateEnumOp)

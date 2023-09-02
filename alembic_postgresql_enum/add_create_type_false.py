@@ -29,7 +29,7 @@ def inject_repr_into_enums(column: Column):
         column.type = replacement_enum_type
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(f'alembic.{__name__}')
 
 
 def add_create_type_false(upgrade_ops: UpgradeOps):

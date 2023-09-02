@@ -266,7 +266,7 @@ def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValue
             f"                    enum_values_to_rename=[])")
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(f'alembic.{__name__}')
 
 
 def sync_changed_enums(defined_enums: EnumNamesToValues,
