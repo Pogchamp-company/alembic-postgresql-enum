@@ -90,7 +90,7 @@ def get_enum_values(enum_type: sqlalchemy.Enum, dialect) -> 'Tuple[str, ...]':
 
 def column_type_is_enum(column_type: Any) -> bool:
     if isinstance(column_type, sqlalchemy.Enum):
-        return True
+        return column_type.native_enum
 
     # For specific case when types.TypeDecorator is used
     if isinstance(getattr(column_type, 'impl', None), sqlalchemy.Enum):
