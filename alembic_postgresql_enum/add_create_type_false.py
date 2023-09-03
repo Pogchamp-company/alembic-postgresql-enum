@@ -13,7 +13,6 @@ class ReprWorkaround(postgresql.ENUM):
     __module__ = 'sqlalchemy.dialects.postgresql'
 
     def __repr__(self):
-        # todo Maybe add warning if create_type=True as it is replaced by False
         return (
                 super().__repr__()[:-1] + ', create_type=False)'
         ).replace('ReprWorkaround', 'ENUM')
