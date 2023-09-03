@@ -15,6 +15,8 @@ CAR_TABLE_NAME = 'cars'
 CAR_COLORS_COLUMN_NAME = 'colors'
 CAR_COLORS_ENUM_NAME = 'car_color'
 
+ANOTHER_SCHEMA_NAME = 'another'
+
 
 def get_schema_with_enum_variants(variants: List[str]) -> MetaData:
     schema = MetaData()
