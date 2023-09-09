@@ -5,7 +5,7 @@ on:
     tags:
       - '!refs/tags/*'
     branches:
-      - '*'
+      - '**'
     paths:
       - tests/**
       - alembic_postgresql_enum/**
