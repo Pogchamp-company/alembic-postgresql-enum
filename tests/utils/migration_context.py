@@ -16,6 +16,7 @@ def default_migration_options(target_schema: MetaData) -> dict:
         "target_metadata": target_schema,
         "upgrade_token": "upgrades",
         "downgrade_token": "downgrades",
+        "include_schemas": True,
     }
 
 
