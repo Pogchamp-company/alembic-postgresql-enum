@@ -11,7 +11,7 @@ Alembic will now automatically:
 - Reorder enum values
 - Delete unused enums from schema
 
-If you are curious to know about analogs and reasons for this library to exist see [alternatives and motivation](docs/alternatives.md)
+If you are curious to know about analogs and reasons for this library to exist see [alternatives and motivation](https://github.com/Pogchamp-company/alembic-postgresql-enum/blob/master/docs/alternatives.md)
 
 ## Usage
 

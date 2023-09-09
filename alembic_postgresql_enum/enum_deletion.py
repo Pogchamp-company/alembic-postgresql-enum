@@ -22,6 +22,11 @@ class DropEnumOp(EnumOp):
 
 @alembic.autogenerate.render.renderers.dispatch_for(DropEnumOp)
 def render_drop_enum_op(autogen_context: AutogenContext, op: DropEnumOp):
+    if op.schema != autogen_context.dialect.default_schema_name:
+        return f"""
+            sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}', schema='{op.schema}').drop(op.get_bind())
+            """.strip()
+
     return f"""
         sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').drop(op.get_bind())
         """.strip()

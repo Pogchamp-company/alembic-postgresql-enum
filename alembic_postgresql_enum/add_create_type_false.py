@@ -13,7 +13,6 @@ class ReprWorkaround(postgresql.ENUM):
     __module__ = 'sqlalchemy.dialects.postgresql'
 
     def __repr__(self):
-        # todo Maybe add warning if create_type=True as it is replaced by False
         return (
                 super().__repr__()[:-1] + ', create_type=False)'
         ).replace('ReprWorkaround', 'ENUM')
@@ -22,6 +21,8 @@ class ReprWorkaround(postgresql.ENUM):
 def inject_repr_into_enums(column: Column):
     """Swap postgresql.ENUM class to ReprWorkaround for the column type"""
     if column.type.__class__ == sqlalchemy.Enum:
+        if not column.type.native_enum:
+            return
         log.info("%r converted into postgresql.ENUM", column.type)
         column.type = eval(repr(column.type).replace('Enum', 'postgresql.ENUM'))
     if isinstance(column.type, postgresql.ENUM):
