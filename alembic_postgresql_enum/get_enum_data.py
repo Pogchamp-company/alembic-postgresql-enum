@@ -2,7 +2,7 @@
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, Tuple, TYPE_CHECKING, Any, Set, FrozenSet, Union
+from typing import Dict, Tuple, TYPE_CHECKING, Any, Set, FrozenSet, Union, List
 from enum import Enum as PyEnum
 
 import sqlalchemy
@@ -99,7 +99,7 @@ def column_type_is_enum(column_type: Any) -> bool:
     return False
 
 
-def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dialect: 'Dialect') -> DeclaredEnumValues:
+def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str, default_schema: str, dialect: 'Dialect') -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
     with columns where enums are used.
@@ -124,31 +124,37 @@ def get_declared_enums(metadata: MetaData, schema: str, default_schema: str, dia
     enum_name_to_values = dict()
     enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(set)
 
-    for table in metadata.tables.values():
-        for column in table.columns:
-            # if column is array of enums
-            column_type = column.type
-            column_type_wrapper = ColumnType.COMMON
+    if isinstance(metadata, list):
+        metadata_list = metadata
+    else:
+        metadata_list = [metadata]
 
-            if isinstance(column_type, sqlalchemy.ARRAY):
-                column_type = column_type.item_type
-                column_type_wrapper = ColumnType.ARRAY
+    for metadata in metadata_list:
+        for table in metadata.tables.values():
+            for column in table.columns:
+                # if column is array of enums
+                column_type = column.type
+                column_type_wrapper = ColumnType.COMMON
 
-            # if column is in different schema
-            if not hasattr(column_type, 'schema'):
-                continue
-            if schema != (column_type.schema or default_schema):
-                continue
+                if isinstance(column_type, sqlalchemy.ARRAY):
+                    column_type = column_type.item_type
+                    column_type_wrapper = ColumnType.ARRAY
 
-            if not column_type_is_enum(column_type):
-                continue
+                # if column is in different schema
+                if not hasattr(column_type, 'schema'):
+                    continue
+                if schema != (column_type.schema or default_schema):
+                    continue
 
-            if column_type.name not in enum_name_to_values:
-                enum_name_to_values[column_type.name] = get_enum_values(column_type, dialect)
+                if not column_type_is_enum(column_type):
+                    continue
 
-            enum_name_to_table_references[column_type.name].add(
-                TableReference(table.name, column.name, column_type_wrapper)
-            )
+                if column_type.name not in enum_name_to_values:
+                    enum_name_to_values[column_type.name] = get_enum_values(column_type, dialect)
+
+                enum_name_to_table_references[column_type.name].add(
+                    TableReference(table.name, column.name, column_type_wrapper)
+                )
 
     return DeclaredEnumValues(
         enum_values=enum_name_to_values,

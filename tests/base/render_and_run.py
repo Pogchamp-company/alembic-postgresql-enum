@@ -1,5 +1,5 @@
 import textwrap
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union, List
 
 import sqlalchemy
 from alembic import autogenerate
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from sqlalchemy import Connection
 
 
-def compare_and_run(connection: 'Connection', target_schema: MetaData, *,
+def compare_and_run(connection: 'Connection', target_schema: Union[MetaData, List[MetaData]], *,
                     expected_upgrade: str,
                     expected_downgrade: str):
     """Compares generated migration script is equal to expected_upgrade and expected_downgrade, then runs it"""
