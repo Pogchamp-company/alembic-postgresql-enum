@@ -14,8 +14,10 @@ class ReprWorkaround(postgresql.ENUM):
 
     def __repr__(self):
         return (
-                super().__repr__()[:-1] + ', create_type=False)'
-        ).replace('ReprWorkaround', 'ENUM')
+            f'{super().__repr__()[:-1]}, create_type=False)'
+            .replace('ReprWorkaround', 'ENUM')
+            .replace(', metadata=MetaData()', '')
+        )
 
 
 def inject_repr_into_enums(column: Column):
