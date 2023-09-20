@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from sqlalchemy import Connection
 from sqlalchemy import MetaData, Column, Integer
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import ENUM
 
 my_metadata = MetaData(schema=ANOTHER_SCHEMA_NAME)
@@ -34,7 +33,7 @@ class TableWithExplicitEnumSchema(Base):
     __tablename__ = "test"
     id = Column(Integer, primary_key=True)
 
-    status: Mapped[_TestStatus] = mapped_column(
+    status = Column(
         ENUM(_TestStatus, name="test_status", schema=Base.metadata.schema),
         nullable=False,
     )
