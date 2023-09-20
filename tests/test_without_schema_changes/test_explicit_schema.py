@@ -12,15 +12,14 @@ from tests.schemas import ANOTHER_SCHEMA_NAME
 if TYPE_CHECKING:
     from sqlalchemy import Connection
 from sqlalchemy import MetaData, Column, Integer
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import ENUM
 
 my_metadata = MetaData(schema=ANOTHER_SCHEMA_NAME)
 
 
-class Base(DeclarativeBase):
-    metadata = my_metadata
+Base = declarative_base(metadata=my_metadata)
 
 
 # Definition of my enum
