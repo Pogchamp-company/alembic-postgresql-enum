@@ -53,7 +53,7 @@ def test_get_defined_enums(connection: 'Connection'):
 def test_get_declared_enums():
     declared_schema = my_metadata
 
-    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, ANOTHER_SCHEMA_NAME, postgresql.dialect)
+    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, ANOTHER_SCHEMA_NAME)
 
     assert function_result.enum_values == {
         'test_status': tuple(map(lambda item: item.value, _TestStatus))

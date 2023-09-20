@@ -7,10 +7,8 @@ from enum import Enum as PyEnum
 
 import sqlalchemy
 from sqlalchemy import MetaData, Enum
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import ARRAY
-
-if TYPE_CHECKING:
-    from sqlalchemy.engine import Dialect
 
 
 class ColumnType(PyEnum):
@@ -83,9 +81,11 @@ def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
     }
 
 
-def get_enum_values(enum_type: sqlalchemy.Enum, dialect) -> 'Tuple[str, ...]':
+def get_enum_values(enum_type: sqlalchemy.Enum) -> 'Tuple[str, ...]':
     # For specific case when types.TypeDecorator is used
     if isinstance(enum_type, sqlalchemy.types.TypeDecorator):
+        dialect = postgresql.dialect
+
         def value_processor(value):
             return enum_type.process_bind_param(
                 enum_type.impl.result_processor(dialect, enum_type)(value),
@@ -108,7 +108,7 @@ def column_type_is_enum(column_type: Any) -> bool:
     return False
 
 
-def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str, default_schema: str, dialect: 'Dialect') -> DeclaredEnumValues:
+def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str, default_schema: str) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
     with columns where enums are used.
@@ -118,8 +118,6 @@ def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str, d
         Schema name (e.g. "public").
     :param default_schema:
         Default schema name, likely will be "public"
-    :param dialect: todo may be a good idea to get rid of it as library only supports postgresql
-        Current sql dialect
     :returns DeclaredEnumValues:
         enum_values: {
             "my_enum": tuple(["a", "b", "c"]),
@@ -157,7 +155,7 @@ def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str, d
                     continue
 
                 if column_type.name not in enum_name_to_values:
-                    enum_name_to_values[column_type.name] = get_enum_values(column_type, dialect)
+                    enum_name_to_values[column_type.name] = get_enum_values(column_type)
 
                 enum_name_to_table_references[column_type.name].add(
                     TableReference(table.name, column.name, column_type_wrapper)
