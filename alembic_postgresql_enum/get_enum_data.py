@@ -43,6 +43,15 @@ class DeclaredEnumValues:
     enum_table_references: EnumNamesToTableReferences
 
 
+def _remove_schema_prefix(enum_name: str, schema: str) -> str:
+    schema_prefix = f'{schema}.'
+
+    if enum_name.startswith(schema_prefix):
+        enum_name = enum_name[len(schema_prefix):]
+
+    return enum_name
+
+
 def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
     """
     Return a dict mapping PostgreSQL defined enumeration types to the set of their
@@ -69,7 +78,7 @@ def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
             AND n.nspname = :schema
     """
     return {
-        name: tuple(values)
+        _remove_schema_prefix(name, schema): tuple(values)
         for name, values in conn.execute(sqlalchemy.text(sql), dict(schema=schema))
     }
 
