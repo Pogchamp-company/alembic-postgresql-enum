@@ -41,7 +41,13 @@ def test_get_defined_enums_metadata(connection: 'Connection'):
     database_schema = my_metadata
     database_schema.create_all(connection)
 
-    function_result = get_defined_enums(connection, 'public')
+    # Check that enum is not created inside `another` schema
+    function_result = get_defined_enums(connection, ANOTHER_SCHEMA_NAME)
+    assert function_result == {
+    }
+
+    # Check that enum is created inside `public` schema
+    function_result = get_defined_enums(connection, DEFAULT_SCHEMA)
 
     assert function_result == {
         'test_status': tuple(map(lambda item: item.value, _TestStatus))
