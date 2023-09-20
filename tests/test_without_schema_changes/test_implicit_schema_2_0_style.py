@@ -44,7 +44,7 @@ def get_my_metadata() -> MetaData:
     return my_metadata
 
 
-@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'))
+@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'), reason="Table are made in 2.0 style")
 def test_get_defined_enums_metadata(connection: 'Connection'):
     my_metadata = get_my_metadata()
     database_schema = my_metadata
@@ -57,7 +57,7 @@ def test_get_defined_enums_metadata(connection: 'Connection'):
     }
 
 
-@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'))
+@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'), reason="Table are made in 2.0 style")
 def test_get_declared_enums():
     my_metadata = get_my_metadata()
     declared_schema = my_metadata
@@ -79,7 +79,7 @@ def test_get_declared_enums():
     }
 
 
-@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'))
+@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'), reason="Table are made in 2.0 style")
 def test_compare_and_run_create_table(connection: 'Connection'):
     my_metadata = get_my_metadata()
     target_schema = my_metadata
@@ -102,7 +102,7 @@ def test_compare_and_run_create_table(connection: 'Connection'):
     """)
 
 
-@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'))
+@pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'), reason="Table are made in 2.0 style")
 def test_compare_and_run(connection: 'Connection'):
     my_metadata = get_my_metadata()
     database_schema = my_metadata
