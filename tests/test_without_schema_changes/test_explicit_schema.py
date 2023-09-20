@@ -2,12 +2,10 @@
 import enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy.dialects import postgresql
-
 from alembic_postgresql_enum import get_defined_enums, get_declared_enums
 from alembic_postgresql_enum.get_enum_data import TableReference
 from tests.base.render_and_run import compare_and_run
-from tests.schemas import ANOTHER_SCHEMA_NAME
+from tests.schemas import ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA
 
 if TYPE_CHECKING:
     from sqlalchemy import Connection
@@ -53,7 +51,7 @@ def test_get_defined_enums(connection: 'Connection'):
 def test_get_declared_enums():
     declared_schema = my_metadata
 
-    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, ANOTHER_SCHEMA_NAME)
+    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA)
 
     assert function_result.enum_values == {
         'test_status': tuple(map(lambda item: item.value, _TestStatus))
