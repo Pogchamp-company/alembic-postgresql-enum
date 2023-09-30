@@ -10,7 +10,7 @@ def test_with_user_schema():
     enum_variants = ["active", "passive"]
     declared_schema = get_schema_with_enum_variants(enum_variants)
 
-    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, postgresql.dialect)
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA)
 
     assert function_result.enum_values == {
         USER_STATUS_ENUM_NAME: tuple(enum_variants)
@@ -24,6 +24,6 @@ def test_with_multiple_enums():
     declared_enum_values = get_declared_enum_values_with_orders_and_users()
     declared_schema = get_schema_by_declared_enum_values(declared_enum_values)
 
-    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, postgresql.dialect)
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA)
 
     assert function_result == declared_enum_values

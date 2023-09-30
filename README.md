@@ -38,7 +38,7 @@ To the top of your migrations/env.py file.
 * [Deletion of enums values](#deletion-of-enums-values)
 * [Renaming of enum values](#rename-enum-value)
 
-### Creation of enum
+### Creation of enum<a id="creation-of-enum"></a>
 
 #### When table is created
 
@@ -109,7 +109,7 @@ def downgrade():
     # ### end Alembic commands ###
 ```
 
-### Deletion of unreferenced enum
+### Deletion of unreferenced enum<a id="deletion-of-unreferenced-enum"></a>
 If enum is defined in postgres schema, but its mentions removed from code - It will be automatically removed
 ```python
 class ExampleTable(BaseModel):
@@ -132,7 +132,7 @@ def downgrade():
     # ### end Alembic commands ###
 ```
 
-### Creation of new enum values
+### Creation of new enum values<a id="creation-of-new-enum-values"></a>
 
 If new enum value is defined sync_enum_values function call will be added to migration to account for it
 
@@ -161,7 +161,7 @@ def downgrade():
     # ### end Alembic commands ###
 ```
 
-### Deletion of enums values
+### Deletion of enums values<a id="deletion-of-enums-values"></a>
 
 If enum value is removed it also will be detected
 
@@ -189,7 +189,7 @@ def downgrade():
     # ### end Alembic commands ###
 ```
 
-### Rename enum value
+### Rename enum value<a id="rename-enum-value"></a>
 In this case you must manually edit migration
 
 ```python

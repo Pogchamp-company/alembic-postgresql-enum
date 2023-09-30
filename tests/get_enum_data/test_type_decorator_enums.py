@@ -71,7 +71,7 @@ def get_schema_with_custom_enum() -> MetaData:
 def test_get_declared_enums_for_custom_enum():
     declared_schema = get_schema_with_custom_enum()
 
-    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, postgresql.dialect)
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA)
 
     assert function_result.enum_values == {
         # All declared enum variants must be taken from OrderDeliveryStatus values, see ValuesEnum
