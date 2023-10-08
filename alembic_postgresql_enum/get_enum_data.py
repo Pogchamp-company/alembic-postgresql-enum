@@ -68,7 +68,8 @@ def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
             pg_catalog.format_type(t.oid, NULL),
             ARRAY(SELECT enumlabel
                   FROM pg_catalog.pg_enum
-                  WHERE enumtypid = t.oid)
+                  WHERE enumtypid = t.oid
+                  ORDER BY enumsortorder)
         FROM pg_catalog.pg_type t
         LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
         WHERE
