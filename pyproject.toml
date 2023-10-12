@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alembic-postgresql-enum"
-version = "0.2.0"
+version = "0.2.1"
 description = "Alembic autogenerate support for creation, alteration and deletion of enums"
 authors = ["RustyGuard"]
 license = "MIT"
