@@ -1,6 +1,10 @@
 name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
-on: push
+on:
+  push:
+      tags:
+        - '!refs/tags/*'
+
 
 jobs:
   build:
