@@ -206,7 +206,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
         drop_comparison_operators(connection, schema, enum_name, temporary_enum_name)
         connection.execute(sqlalchemy.text(
-            f"""DROP TYPE {temporary_enum_name};"""
+            f"""DROP TYPE {schema}.{temporary_enum_name};"""
         ))
 
     @classmethod
