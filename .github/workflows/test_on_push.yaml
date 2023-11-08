@@ -9,6 +9,7 @@ on:
     paths:
       - tests/**
       - alembic_postgresql_enum/**
+      - .github/workflows/test_on_push.yaml
   pull_request: { }
 
 jobs:
@@ -17,7 +18,7 @@ jobs:
     strategy:
       matrix:
         sqlalchemy: [ "1.4", "2.0" ]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
     # Service containers to run with `container-job`
     services:
