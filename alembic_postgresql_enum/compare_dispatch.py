@@ -2,7 +2,7 @@ from typing import Iterable, Union
 
 import alembic
 from alembic.autogenerate.api import AutogenContext
-from alembic.operations.ops import UpgradeOps
+from alembic.operations.ops import UpgradeOps, CreateTableOp
 
 from alembic_postgresql_enum.add_create_type_false import add_create_type_false
 from alembic_postgresql_enum.enum_alteration import sync_changed_enums
@@ -16,12 +16,18 @@ def compare_enums(autogen_context: AutogenContext, upgrade_ops: UpgradeOps, sche
     """
     Walk the declared SQLAlchemy schema for every referenced Enum, walk the PG
     schema for every defined Enum, then generate SyncEnumValuesOp migrations
-    for each defined enum that has grown new entries when compared to its
+    for each defined enum that has changed new entries when compared to its
     declared version.
-    Enums that don't exist in the database yet are ignored, since
-    SQLAlchemy/Alembic will create them as part of the usual migration process.
     """
     add_create_type_false(upgrade_ops)
+
+    schema_names = list(schema_names)
+
+    # Issue #40
+    # Add schema if it is gonna be created inside the migration
+    for operations_group in upgrade_ops.ops:
+        if isinstance(operations_group, CreateTableOp) and operations_group.schema not in schema_names:
+            schema_names.append(operations_group.schema)
 
     for schema in schema_names:
         default_schema = autogen_context.dialect.default_schema_name
