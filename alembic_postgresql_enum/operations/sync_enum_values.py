@@ -55,7 +55,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                          schema: str,
                          enum_name: str,
                          new_values: List[str],
-                         affected_columns: 'List[Tuple[str, str]]',
+                         affected_columns: 'List[TableReference]',
                          enum_values_to_rename: 'List[Tuple[str, str]]'
                          ):
         enum_type_name = f"{schema}.{enum_name}"
@@ -66,11 +66,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
         create_comparison_operators(connection, schema, enum_name, temporary_enum_name, enum_values_to_rename)
 
-        for affected_column_tuple in affected_columns:
-            table_reference = TableReference(*affected_column_tuple)
-            column_default = get_column_default(connection, schema,
-                                                table_reference.table_name,
-                                                table_reference.column_name)
+        for table_reference in affected_columns:
+            column_default = table_reference.existing_server_default
 
             if column_default is not None:
                 drop_default(connection, schema, table_reference)
@@ -128,7 +125,26 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         enum_values_to_rename = list(enum_values_to_rename)
 
         with get_connection(operations) as connection:
-            cls._set_enum_values(connection, schema, enum_name, new_values, affected_columns, enum_values_to_rename)
+            table_references = []
+            for affected_column in affected_columns:
+                if isinstance(affected_column, tuple):  # This is considered old style
+                    table_name = affected_column[0]
+                    column_name = affected_column[1]
+                    if len(affected_column) > 2:
+                        column_type = affected_column[2]
+                    else:
+                        column_type = ColumnType.COMMON
+                    column_default = get_column_default(connection, schema, table_name, column_name)
+                    table_references.append(TableReference(
+                        table_name, column_name, column_type, column_default
+                    ))
+
+                elif isinstance(affected_column, TableReference):
+                    table_references.append(affected_column)
+                else:
+                    raise ValueError("Affected columns must contain tuples or TableReferences")
+
+            cls._set_enum_values(connection, schema, enum_name, new_values, table_references, enum_values_to_rename)
 
     def to_diff_tuple(self) -> 'Tuple[Any, ...]':
         return self.operation_name, self.old_values, self.new_values, self.affected_columns
