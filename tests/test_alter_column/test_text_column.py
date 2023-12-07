@@ -7,7 +7,7 @@ from sqlalchemy.dialects import postgresql
 if TYPE_CHECKING:
     from sqlalchemy import Connection
 
-from base.render_and_run import compare_and_run
+from tests.base.render_and_run import compare_and_run
 
 
 class NewEnum(Enum):
