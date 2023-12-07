@@ -57,18 +57,18 @@ def test_get_defined_enums_metadata(connection: 'Connection'):
 
 
 @pytest.mark.skipif(sqlalchemy.__version__.startswith('1.'), reason="Table are made in 2.0 style")
-def test_get_declared_enums():
+def test_get_declared_enums(connection: 'Connection'):
     my_metadata = get_my_metadata()
     declared_schema = my_metadata
 
     # Check that enum is not created inside `another` schema
-    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA)
+    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {}
     assert function_result.enum_table_references == {}
 
     # Check that enum is created inside `public` schema
-    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA)
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {
         'test_status': tuple(map(lambda item: item.value, _TestStatus))

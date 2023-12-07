@@ -1,13 +1,16 @@
 import enum
 from copy import copy
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import sqlalchemy.types
 from sqlalchemy import Table, Column, MetaData
-from sqlalchemy.dialects import postgresql
 
 from alembic_postgresql_enum.get_enum_data import get_declared_enums, TableReference
 from tests.schemas import DEFAULT_SCHEMA
+
+if TYPE_CHECKING:
+    from sqlalchemy import Connection
 
 
 class ValuesEnum(sqlalchemy.types.TypeDecorator):
@@ -68,10 +71,10 @@ def get_schema_with_custom_enum() -> MetaData:
     return schema
 
 
-def test_get_declared_enums_for_custom_enum():
+def test_get_declared_enums_for_custom_enum(connection: 'Connection'):
     declared_schema = get_schema_with_custom_enum()
 
-    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA)
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {
         # All declared enum variants must be taken from OrderDeliveryStatus values, see ValuesEnum

@@ -5,8 +5,7 @@ from alembic.runtime.migration import MigrationContext
 from sqlalchemy import Table, Column, Integer, MetaData
 from sqlalchemy.engine import Connection
 
-from alembic_postgresql_enum.get_enum_data import TableReference, ColumnType, get_defined_enums
-from alembic_postgresql_enum.operations import SyncEnumValuesOp
+from alembic_postgresql_enum.get_enum_data import ColumnType, get_defined_enums
 from alembic_postgresql_enum.sql_commands.column_default import get_column_default
 from tests.schemas import (get_schema_with_enum_variants, DEFAULT_SCHEMA,
                            USER_STATUS_ENUM_NAME, USER_STATUS_COLUMN_NAME,
@@ -126,8 +125,7 @@ def test_sync_enum_values_with_server_default_renamed(connection: 'Connection'):
                          enum_values_to_rename=[('passive', 'inactive')])
 
     defined = get_defined_enums(connection, DEFAULT_SCHEMA)
-    order_status_default = get_column_default(connection, DEFAULT_SCHEMA,
-                                                                TableReference('orders', 'status'))
+    order_status_default = get_column_default(connection, DEFAULT_SCHEMA, 'orders', 'status')
 
     assert order_status_default == "'inactive'::order_status"
     assert defined == {

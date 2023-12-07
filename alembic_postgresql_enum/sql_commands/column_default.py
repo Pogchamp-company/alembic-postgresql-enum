@@ -10,7 +10,8 @@ if TYPE_CHECKING:
 
 def get_column_default(connection: 'Connection',
                        schema: str,
-                       table_reference: TableReference,
+                       table_name: str,
+                       column_name: str,
                        ) -> Union[str, None]:
     """Result example: "'active'::order_status" """
     default_value = connection.execute(sqlalchemy.text(f"""
@@ -18,8 +19,8 @@ def get_column_default(connection: 'Connection',
         FROM information_schema.columns
         WHERE 
             table_schema = '{schema}' AND 
-            table_name = '{table_reference.table_name}' AND 
-            column_name = '{table_reference.column_name}';
+            table_name = '{table_name}' AND 
+            column_name = '{column_name}';
     """)).scalar()
     return default_value
 

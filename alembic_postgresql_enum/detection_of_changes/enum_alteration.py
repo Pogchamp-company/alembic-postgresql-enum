@@ -1,5 +1,5 @@
 """
-Alembic extension to generate ALTER TYPE .. ADD VALUE statements to update
+Alembic extension to generate ALTER TYPE ... ADD VALUE statements to update
 SQLAlchemy enums.
 
 """
@@ -17,7 +17,7 @@ def sync_changed_enums(defined_enums: EnumNamesToValues,
                        declared_enums: EnumNamesToValues,
                        table_references: EnumNamesToTableReferences,
                        schema: str,
-                       upgrade_ops: UpgradeOps
+                       upgrade_ops: UpgradeOps,
                        ):
     for enum_name, new_values in declared_enums.items():
         if enum_name not in defined_enums:

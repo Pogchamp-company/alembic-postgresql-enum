@@ -18,6 +18,7 @@ class TableReference:
     table_name: str
     column_name: str
     column_type: ColumnType = ColumnType.COMMON
+    existing_server_default: str = None
 
     def to_tuple(self) -> Union[Tuple[str, str], Tuple[str, str, ColumnType]]:
         if self.column_type == ColumnType.COMMON:

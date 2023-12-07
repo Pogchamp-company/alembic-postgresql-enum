@@ -68,7 +68,9 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
         for affected_column_tuple in affected_columns:
             table_reference = TableReference(*affected_column_tuple)
-            column_default = get_column_default(connection, schema, table_reference)
+            column_default = get_column_default(connection, schema,
+                                                table_reference.table_name,
+                                                table_reference.column_name)
 
             if column_default is not None:
                 drop_default(connection, schema, table_reference)

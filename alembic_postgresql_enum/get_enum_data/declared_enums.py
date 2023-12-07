@@ -1,9 +1,14 @@
 from collections import defaultdict
-from typing import Tuple, Any, Set, Union, List
+from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING
 
 import sqlalchemy
 from sqlalchemy import MetaData
 from sqlalchemy.dialects import postgresql
+
+from alembic_postgresql_enum.sql_commands.column_default import get_column_default
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Connection
 
 from alembic_postgresql_enum.get_enum_data import DeclaredEnumValues, TableReference, ColumnType
 
@@ -35,8 +40,11 @@ def column_type_is_enum(column_type: Any) -> bool:
     return False
 
 
-def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str,
-                       default_schema: str) -> DeclaredEnumValues:
+def get_declared_enums(metadata: Union[MetaData, List[MetaData]],
+                       schema: str,
+                       default_schema: str,
+                       connection: 'Connection',
+                       ) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
     with columns where enums are used.
@@ -46,6 +54,8 @@ def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str,
         Schema name (e.g. "public").
     :param default_schema:
         Default schema name, likely will be "public"
+    :param connection:
+        Database connection
     :returns DeclaredEnumValues:
         enum_values: {
             "my_enum": tuple(["a", "b", "c"]),
@@ -85,8 +95,9 @@ def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str,
                 if column_type.name not in enum_name_to_values:
                     enum_name_to_values[column_type.name] = get_enum_values(column_type)
 
+                column_default = get_column_default(connection, schema, table.name, column.name)
                 enum_name_to_table_references[column_type.name].add(
-                    TableReference(table.name, column.name, column_type_wrapper)
+                    TableReference(table.name, column.name, column_type_wrapper, column_default)
                 )
 
     return DeclaredEnumValues(
