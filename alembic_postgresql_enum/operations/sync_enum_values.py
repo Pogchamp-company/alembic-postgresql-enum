@@ -1,9 +1,3 @@
-"""
-Alembic extension to generate ALTER TYPE .. ADD VALUE statements to update
-SQLAlchemy enums.
-
-"""
-import logging
 from typing import List, Tuple, Any, Iterable, TYPE_CHECKING, Union
 
 import alembic.autogenerate
@@ -11,16 +5,16 @@ import alembic.operations.base
 import alembic.operations.ops
 import sqlalchemy
 from alembic.autogenerate.api import AutogenContext
-from alembic.operations.ops import UpgradeOps
 from sqlalchemy.exc import DataError
 
-from .sql_commands.comparison_operators import create_comparison_operators, drop_comparison_operators
+from alembic_postgresql_enum.sql_commands.comparison_operators import (create_comparison_operators,
+                                                                       drop_comparison_operators)
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
-from .connection import get_connection
-from .get_enum_data import EnumNamesToValues, EnumNamesToTableReferences, TableReference, ColumnType
+from alembic_postgresql_enum.connection import get_connection
+from alembic_postgresql_enum.get_enum_data import TableReference, ColumnType
 
 
 @alembic.operations.base.Operations.register_operation("sync_enum_values")
@@ -138,7 +132,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                     {' '.join(
                     f"WHEN {table_reference.column_name}::text = '{old_value}' THEN '{new_value}'::{enum_type_name}"
                     for old_value, new_value in enum_values_to_rename)}
-                    
+
                     ELSE {table_reference.column_name}::text::{enum_type_name}
                     END;
                     """
@@ -265,31 +259,3 @@ def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValue
     return (f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r},\n"
             f"                    {op.affected_columns!r},\n"
             f"                    enum_values_to_rename=[])")
-
-
-log = logging.getLogger(f'alembic.{__name__}')
-
-
-def sync_changed_enums(defined_enums: EnumNamesToValues,
-                       declared_enums: EnumNamesToValues,
-                       table_references: EnumNamesToTableReferences,
-                       schema: str,
-                       upgrade_ops: UpgradeOps
-                       ):
-    for enum_name, new_values in declared_enums.items():
-        if enum_name not in defined_enums:
-            # That is work for create_new_enums function
-            continue
-
-        old_values = defined_enums[enum_name]
-
-        if new_values == old_values:
-            # Enum definition and declaration are in sync
-            continue
-
-        log.info("Detected changed enum values in %r\nWas: %r\nBecome^ %r", enum_name,
-                 list(old_values), list(new_values))
-        affected_columns = table_references[enum_name]
-        op = SyncEnumValuesOp(schema, enum_name, list(old_values), list(new_values),
-                              [column_reference.to_tuple() for column_reference in affected_columns])
-        upgrade_ops.ops.append(op)

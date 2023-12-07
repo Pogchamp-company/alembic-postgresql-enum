@@ -6,7 +6,7 @@ from sqlalchemy import Table, Column, Integer, MetaData
 from sqlalchemy.engine import Connection
 
 from alembic_postgresql_enum import get_defined_enums
-from alembic_postgresql_enum.enum_alteration import SyncEnumValuesOp
+from alembic_postgresql_enum.operations import SyncEnumValuesOp
 from alembic_postgresql_enum.get_enum_data import TableReference, ColumnType
 from tests.schemas import (get_schema_with_enum_variants, DEFAULT_SCHEMA,
                            USER_STATUS_ENUM_NAME, USER_STATUS_COLUMN_NAME,

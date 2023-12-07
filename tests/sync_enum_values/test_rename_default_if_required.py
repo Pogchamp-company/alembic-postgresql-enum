@@ -1,4 +1,4 @@
-from alembic_postgresql_enum.enum_alteration import SyncEnumValuesOp
+from alembic_postgresql_enum.operations import SyncEnumValuesOp
 
 
 def test_without_renames():

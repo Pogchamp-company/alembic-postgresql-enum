@@ -4,7 +4,7 @@ from alembic import autogenerate
 from alembic.autogenerate import api
 from alembic.operations import ops
 
-from alembic_postgresql_enum.enum_alteration import SyncEnumValuesOp
+from alembic_postgresql_enum.operations import SyncEnumValuesOp
 
 if TYPE_CHECKING:
     from sqlalchemy import Connection
