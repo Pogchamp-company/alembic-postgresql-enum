@@ -1,85 +1,11 @@
-# Based on https://github.com/dw/alembic-autogenerate-enums
 from collections import defaultdict
-from contextlib import contextmanager
-from dataclasses import dataclass
-from typing import Dict, Tuple, TYPE_CHECKING, Any, Set, FrozenSet, Union, List
-from enum import Enum as PyEnum
+from typing import Tuple, Any, Set, Union, List
 
 import sqlalchemy
-from sqlalchemy import MetaData, Enum
+from sqlalchemy import MetaData
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.dialects.postgresql import ARRAY
 
-
-class ColumnType(PyEnum):
-    COMMON = Enum
-    ARRAY = ARRAY
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
-
-
-@dataclass(frozen=True)
-class TableReference:
-    table_name: str
-    column_name: str
-    column_type: ColumnType = ColumnType.COMMON
-
-    def to_tuple(self) -> Union[Tuple[str, str], Tuple[str, str, ColumnType]]:
-        if self.column_type == ColumnType.COMMON:
-            return self.table_name, self.column_name
-        return self.table_name, self.column_name, self.column_type
-
-
-EnumNamesToValues = Dict[str, Tuple[str, ...]]
-EnumNamesToTableReferences = Dict[str, FrozenSet[TableReference]]
-
-
-@dataclass
-class DeclaredEnumValues:
-    enum_values: EnumNamesToValues
-    enum_table_references: EnumNamesToTableReferences
-
-
-def _remove_schema_prefix(enum_name: str, schema: str) -> str:
-    schema_prefix = f'{schema}.'
-
-    if enum_name.startswith(schema_prefix):
-        enum_name = enum_name[len(schema_prefix):]
-
-    return enum_name
-
-
-def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
-    """
-    Return a dict mapping PostgreSQL defined enumeration types to the set of their
-    defined values.
-    :param conn:
-        SQLAlchemy connection instance.
-    :param str schema:
-        Schema name (e.g. "public").
-    :returns DeclaredEnumValues:
-        enum_definitions={
-            "my_enum": tuple(["a", "b", "c"]),
-        }
-    """
-    sql = """
-        SELECT
-            pg_catalog.format_type(t.oid, NULL),
-            ARRAY(SELECT enumlabel
-                  FROM pg_catalog.pg_enum
-                  WHERE enumtypid = t.oid
-                  ORDER BY enumsortorder)
-        FROM pg_catalog.pg_type t
-        LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-        WHERE
-            t.typtype = 'e'
-            AND n.nspname = :schema
-    """
-    return {
-        _remove_schema_prefix(name, schema): tuple(values)
-        for name, values in conn.execute(sqlalchemy.text(sql), dict(schema=schema))
-    }
+from alembic_postgresql_enum.get_enum_data import DeclaredEnumValues, TableReference, ColumnType
 
 
 def get_enum_values(enum_type: sqlalchemy.Enum) -> 'Tuple[str, ...]':
@@ -109,7 +35,8 @@ def column_type_is_enum(column_type: Any) -> bool:
     return False
 
 
-def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str, default_schema: str) -> DeclaredEnumValues:
+def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str,
+                       default_schema: str) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
     with columns where enums are used.
@@ -168,17 +95,3 @@ def get_declared_enums(metadata: Union[MetaData, List[MetaData]], schema: str, d
                                for enum_name, table_references
                                in enum_name_to_table_references.items()},
     )
-
-
-@contextmanager
-def get_connection(operations) -> sqlalchemy.engine.Connection:
-    """
-    SQLAlchemy 2.0 changes the operation binding location; bridge function to support
-    both 1.x and 2.x.
-
-    """
-    binding = operations.get_bind()
-    if isinstance(binding, sqlalchemy.engine.Connection):
-        yield binding
-        return
-    yield binding.connect()

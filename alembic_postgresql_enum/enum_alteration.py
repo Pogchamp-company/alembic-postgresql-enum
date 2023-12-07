@@ -19,7 +19,8 @@ from .sql_commands.comparison_operators import create_comparison_operators, drop
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
-from .get_enum_data import get_connection, EnumNamesToValues, EnumNamesToTableReferences, TableReference, ColumnType
+from .connection import get_connection
+from .get_enum_data import EnumNamesToValues, EnumNamesToTableReferences, TableReference, ColumnType
 
 
 @alembic.operations.base.Operations.register_operation("sync_enum_values")
