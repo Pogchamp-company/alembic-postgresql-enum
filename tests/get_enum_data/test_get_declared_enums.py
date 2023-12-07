@@ -1,7 +1,4 @@
-from sqlalchemy.dialects import postgresql
-
-from alembic_postgresql_enum import get_declared_enums
-from alembic_postgresql_enum.get_enum_data import TableReference
+from alembic_postgresql_enum.get_enum_data import TableReference, get_declared_enums
 from tests.schemas import get_schema_with_enum_variants, DEFAULT_SCHEMA, USER_STATUS_ENUM_NAME, USER_TABLE_NAME, \
     USER_STATUS_COLUMN_NAME, get_schema_by_declared_enum_values, get_declared_enum_values_with_orders_and_users
 

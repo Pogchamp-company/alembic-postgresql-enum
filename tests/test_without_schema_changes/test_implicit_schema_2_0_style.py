@@ -5,8 +5,7 @@ from typing import TYPE_CHECKING
 import pytest
 import sqlalchemy
 
-from alembic_postgresql_enum import get_defined_enums, get_declared_enums
-from alembic_postgresql_enum.get_enum_data import TableReference
+from alembic_postgresql_enum.get_enum_data import TableReference, get_defined_enums, get_declared_enums
 from tests.base.render_and_run import compare_and_run
 from tests.schemas import ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA
 
