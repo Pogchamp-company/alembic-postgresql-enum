@@ -4,7 +4,7 @@ from typing import Iterable, Tuple, Any
 import alembic
 
 
-class EnumOp(alembic.operations.ops.MigrateOperation, ABC):
+class EnumLifecycleOp(alembic.operations.ops.MigrateOperation, ABC):
     def __init__(self,
                  schema: str,
                  name: str,

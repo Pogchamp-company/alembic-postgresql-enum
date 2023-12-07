@@ -1,10 +1,10 @@
 import alembic
 from alembic.autogenerate.api import AutogenContext
 
-from alembic_postgresql_enum.enum_op_base import EnumOp
+from .enum_lifecycle_base import EnumLifecycleOp
 
 
-class DropEnumOp(EnumOp):
+class DropEnumOp(EnumLifecycleOp):
     operation_name = 'drop_enum'
 
     def reverse(self):
