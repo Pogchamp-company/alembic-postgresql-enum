@@ -16,7 +16,7 @@ def _create_comparison_operator(connection: 'Connection',
                                 schema: str,
                                 enum_name: str,
                                 old_enum_name: str,
-                                enum_values_to_rename: 'List[Tuple[str, str]]',
+                                enum_values_to_rename: List[Tuple[str, str]],
                                 operator: str,
                                 comparison_function_name: str
                                 ):
@@ -57,7 +57,7 @@ def create_comparison_operators(connection: 'Connection',
                                 schema: str,
                                 enum_name: str,
                                 old_enum_name: str,
-                                enum_values_to_rename: 'List[Tuple[str, str]]'
+                                enum_values_to_rename: List[Tuple[str, str]]
                                 ):
     for operator, comparison_function_name in OPERATORS_TO_CREATE:
         _create_comparison_operator(connection, schema, enum_name, old_enum_name, enum_values_to_rename, operator,

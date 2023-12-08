@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, List, Tuple
 
 import sqlalchemy
 
@@ -46,7 +46,7 @@ def set_default(connection: 'Connection',
 
 def rename_default_if_required(default_value: str,
                                enum_name: str,
-                               enum_values_to_rename: 'List[Tuple[str, str]]'
+                               enum_values_to_rename: List[Tuple[str, str]]
                                ) -> str:
     # remove old type postfix
     column_default_value = default_value[:default_value.find("::")]

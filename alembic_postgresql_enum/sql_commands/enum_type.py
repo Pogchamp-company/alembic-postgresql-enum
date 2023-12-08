@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Tuple
 
 import sqlalchemy
 
@@ -12,7 +12,7 @@ def cast_old_array_enum_type_to_new(connection: 'Connection',
                                     schema: str,
                                     table_reference: TableReference,
                                     enum_type_name: str,
-                                    enum_values_to_rename: 'List[Tuple[str, str]]'
+                                    enum_values_to_rename: List[Tuple[str, str]]
                                     ):
     cast_clause = f'{table_reference.column_name}::text[]'
 
@@ -30,7 +30,7 @@ def cast_old_enum_type_to_new(connection: 'Connection',
                               schema: str,
                               table_reference: TableReference,
                               enum_type_name: str,
-                              enum_values_to_rename: 'List[Tuple[str, str]]'
+                              enum_values_to_rename: List[Tuple[str, str]]
                               ):
     if table_reference.column_type == ColumnType.ARRAY:
         cast_old_array_enum_type_to_new(

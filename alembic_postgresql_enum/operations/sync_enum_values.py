@@ -29,7 +29,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                  name: str,
                  old_values: List[str],
                  new_values: List[str],
-                 affected_columns: 'List[TableReference]'
+                 affected_columns: List[TableReference]
                  ):
         self.schema = schema
         self.name = name
@@ -55,8 +55,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                          schema: str,
                          enum_name: str,
                          new_values: List[str],
-                         affected_columns: 'List[TableReference]',
-                         enum_values_to_rename: 'List[Tuple[str, str]]'
+                         affected_columns: List[TableReference],
+                         enum_values_to_rename: List[Tuple[str, str]]
                          ):
         enum_type_name = f"{schema}.{enum_name}"
         temporary_enum_name = f"{enum_name}_old"
@@ -97,8 +97,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                          schema: str,
                          enum_name: str,
                          new_values: List[str],
-                         affected_columns: 'List[Tuple[str, str]]',
-                         enum_values_to_rename: 'Iterable[Tuple[str, str]]' = tuple()
+                         affected_columns: List[Tuple[str, str]],
+                         enum_values_to_rename: Iterable[Tuple[str, str]] = tuple()
                          ):
         """
         Replace enum values with `new_values`
@@ -146,7 +146,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
             cls._set_enum_values(connection, schema, enum_name, new_values, table_references, enum_values_to_rename)
 
-    def to_diff_tuple(self) -> 'Tuple[Any, ...]':
+    def to_diff_tuple(self) -> Tuple[Any, ...]:
         return self.operation_name, self.old_values, self.new_values, self.affected_columns
 
     @property
