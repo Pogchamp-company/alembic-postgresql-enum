@@ -5,6 +5,7 @@ from alembic.autogenerate.api import AutogenContext
 from alembic.operations.ops import UpgradeOps, CreateTableOp
 
 from alembic_postgresql_enum.add_create_type_false import add_create_type_false
+from alembic_postgresql_enum.add_postgres_using_to_text import add_postgres_using_to_text
 from alembic_postgresql_enum.detection_of_changes import sync_changed_enums, create_new_enums, drop_unused_enums
 from alembic_postgresql_enum.get_enum_data import get_defined_enums, get_declared_enums
 
@@ -18,6 +19,7 @@ def compare_enums(autogen_context: AutogenContext, upgrade_ops: UpgradeOps, sche
     declared version.
     """
     add_create_type_false(upgrade_ops)
+    add_postgres_using_to_text(upgrade_ops)
 
     schema_names = list(schema_names)
 
