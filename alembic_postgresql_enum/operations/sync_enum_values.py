@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any, Iterable, TYPE_CHECKING, Union
+from typing import List, Tuple, Any, Iterable, TYPE_CHECKING
 
 import alembic.autogenerate
 import alembic.operations.base
@@ -29,7 +29,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                  name: str,
                  old_values: List[str],
                  new_values: List[str],
-                 affected_columns: 'List[Union[Tuple[str, str], Tuple[str, str, ColumnType]]]'
+                 affected_columns: 'List[TableReference]'
                  ):
         self.schema = schema
         self.name = name
@@ -151,16 +151,14 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
     @property
     def is_column_type_import_needed(self) -> bool:
-        for affected_column_tuple in self.affected_columns:
-            if len(affected_column_tuple) == 3:
-                return True
-        return False
+        return any((affected_column.is_column_type_import_needed for affected_column in self.affected_columns))
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
 def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValuesOp):
     if op.is_column_type_import_needed:
         autogen_context.imports.add('from alembic_postgresql_enum import ColumnType')
+    autogen_context.imports.add('from alembic_postgresql_enum import TableReference')
 
     return (f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r},\n"
             f"                    {op.affected_columns!r},\n"

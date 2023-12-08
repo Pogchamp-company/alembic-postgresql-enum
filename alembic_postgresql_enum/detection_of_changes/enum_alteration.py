@@ -33,6 +33,5 @@ def sync_changed_enums(defined_enums: EnumNamesToValues,
         log.info("Detected changed enum values in %r\nWas: %r\nBecome: %r", enum_name,
                  list(old_values), list(new_values))
         affected_columns = table_references[enum_name]
-        op = SyncEnumValuesOp(schema, enum_name, list(old_values), list(new_values),
-                              [column_reference.to_tuple() for column_reference in affected_columns])
+        op = SyncEnumValuesOp(schema, enum_name, list(old_values), list(new_values), list(affected_columns))
         upgrade_ops.ops.append(op)
