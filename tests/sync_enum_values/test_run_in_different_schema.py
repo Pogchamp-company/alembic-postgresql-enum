@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 
-from alembic_postgresql_enum import get_defined_enums
+from alembic_postgresql_enum.get_enum_data import get_defined_enums
 from tests.schemas import ANOTHER_SCHEMA_NAME
 
 if TYPE_CHECKING:
@@ -15,7 +15,6 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.dialects.postgresql import ENUM
 
 my_metadata = MetaData(schema=ANOTHER_SCHEMA_NAME)
-
 
 Base = declarative_base(metadata=my_metadata)
 

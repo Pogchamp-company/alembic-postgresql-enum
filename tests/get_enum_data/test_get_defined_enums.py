@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy import Connection
 
-from alembic_postgresql_enum import get_defined_enums
+from alembic_postgresql_enum.get_enum_data import get_defined_enums
 from tests.schemas import get_schema_with_enum_variants, DEFAULT_SCHEMA, USER_STATUS_ENUM_NAME, \
     get_schema_by_declared_enum_values, get_declared_enum_values_with_orders_and_users
 
