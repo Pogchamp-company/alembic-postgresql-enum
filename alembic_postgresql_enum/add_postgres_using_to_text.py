@@ -6,7 +6,7 @@ from alembic.operations import ops
 from alembic.operations.ops import UpgradeOps, ModifyTableOps, AlterColumnOp
 from sqlalchemy import String
 
-from alembic_postgresql_enum.get_enum_data import column_type_is_enum
+from alembic_postgresql_enum.get_enum_data.declared_enums import column_type_is_enum
 
 
 class PostgresUsingAlterColumnOp(AlterColumnOp):
