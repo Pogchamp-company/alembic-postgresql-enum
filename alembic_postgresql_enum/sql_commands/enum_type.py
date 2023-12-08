@@ -80,3 +80,20 @@ def create_type(connection: 'Connection', schema: str, type_name: str, enum_valu
     connection.execute(sqlalchemy.text(
         f"""CREATE TYPE {schema}.{type_name} AS ENUM({', '.join(f"'{value}'" for value in enum_values)})"""
     ))
+
+
+def get_all_enums(connection: 'Connection', schema: str):
+    sql = """
+        SELECT
+            pg_catalog.format_type(t.oid, NULL),
+            ARRAY(SELECT enumlabel
+                  FROM pg_catalog.pg_enum
+                  WHERE enumtypid = t.oid
+                  ORDER BY enumsortorder)
+        FROM pg_catalog.pg_type t
+        LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+        WHERE
+            t.typtype = 'e'
+            AND n.nspname = :schema
+    """
+    return connection.execute(sqlalchemy.text(sql), dict(schema=schema))

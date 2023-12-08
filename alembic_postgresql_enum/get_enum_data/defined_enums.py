@@ -1,6 +1,10 @@
-import sqlalchemy
+from typing import TYPE_CHECKING
 
 from alembic_postgresql_enum.get_enum_data.types import EnumNamesToValues
+from alembic_postgresql_enum.sql_commands.enum_type import get_all_enums
+
+if TYPE_CHECKING:
+    from sqlalchemy.engine import Connection
 
 
 def _remove_schema_prefix(enum_name: str, schema: str) -> str:
@@ -12,7 +16,7 @@ def _remove_schema_prefix(enum_name: str, schema: str) -> str:
     return enum_name
 
 
-def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
+def get_defined_enums(connection: 'Connection', schema: str) -> EnumNamesToValues:
     """
     Return a dict mapping PostgreSQL defined enumeration types to the set of their
     defined values.
@@ -25,20 +29,7 @@ def get_defined_enums(conn, schema: str) -> EnumNamesToValues:
             "my_enum": tuple(["a", "b", "c"]),
         }
     """
-    sql = """
-        SELECT
-            pg_catalog.format_type(t.oid, NULL),
-            ARRAY(SELECT enumlabel
-                  FROM pg_catalog.pg_enum
-                  WHERE enumtypid = t.oid
-                  ORDER BY enumsortorder)
-        FROM pg_catalog.pg_type t
-        LEFT JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-        WHERE
-            t.typtype = 'e'
-            AND n.nspname = :schema
-    """
     return {
         _remove_schema_prefix(name, schema): tuple(values)
-        for name, values in conn.execute(sqlalchemy.text(sql), dict(schema=schema))
+        for name, values in get_all_enums(connection, schema)
     }
