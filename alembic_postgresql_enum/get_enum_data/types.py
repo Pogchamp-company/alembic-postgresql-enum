@@ -20,11 +20,6 @@ class TableReference:
     column_type: ColumnType = ColumnType.COMMON
     existing_server_default: str = None
 
-    def to_tuple(self) -> Union[Tuple[str, str], Tuple[str, str, ColumnType]]:
-        if self.column_type == ColumnType.COMMON:
-            return self.table_name, self.column_name
-        return self.table_name, self.column_name, self.column_type
-
     def __repr__(self):
         result_str = 'TableReference('
         result_str += f'{self.table_name!r}, '
