@@ -21,7 +21,7 @@ def cast_old_array_enum_type_to_new(connection: 'Connection',
 
     connection.execute(sqlalchemy.text(
         f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name}[]
-            USING {cast_clause}::{enum_type_name}[];
+            USING {cast_clause}::{enum_type_name}[]
             """
     ))
 
@@ -51,13 +51,13 @@ def cast_old_enum_type_to_new(connection: 'Connection',
                 for old_value, new_value in enum_values_to_rename)}
 
                 ELSE {table_reference.column_name}::text::{enum_type_name}
-                END;
+                END
                 """
         ))
     else:
         connection.execute(sqlalchemy.text(
             f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
-                USING {table_reference.column_name}::text::{enum_type_name};
+                USING {table_reference.column_name}::text::{enum_type_name}
                 """
         ))
 
@@ -66,17 +66,17 @@ def drop_type(connection: 'Connection',
               schema: str,
               type_name: str):
     connection.execute(sqlalchemy.text(
-        f"""DROP TYPE {schema}.{type_name};"""
+        f"""DROP TYPE {schema}.{type_name}"""
     ))
 
 
 def rename_type(connection: 'Connection', schema: str, type_name: str, new_type_name: str):
     connection.execute(sqlalchemy.text(
-        f"""ALTER TYPE {schema}.{type_name} RENAME TO {new_type_name};"""
+        f"""ALTER TYPE {schema}.{type_name} RENAME TO {new_type_name}"""
     ))
 
 
 def create_type(connection: 'Connection', schema: str, type_name: str, enum_values: List[str]):
     connection.execute(sqlalchemy.text(
-        f"""CREATE TYPE {schema}.{type_name} AS ENUM({', '.join(f"'{value}'" for value in enum_values)});"""
+        f"""CREATE TYPE {schema}.{type_name} AS ENUM({', '.join(f"'{value}'" for value in enum_values)})"""
     ))

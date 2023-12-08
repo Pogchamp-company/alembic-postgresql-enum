@@ -20,7 +20,7 @@ def get_column_default(connection: 'Connection',
         WHERE 
             table_schema = '{schema}' AND 
             table_name = '{table_name}' AND 
-            column_name = '{column_name}';
+            column_name = '{column_name}'
     """)).scalar()
     return default_value
 
@@ -30,7 +30,7 @@ def drop_default(connection: 'Connection',
                  table_reference: TableReference,
                  ):
     connection.execute(sqlalchemy.text(
-        f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} DROP DEFAULT;"""
+        f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} DROP DEFAULT"""
     ))
 
 
@@ -40,7 +40,7 @@ def set_default(connection: 'Connection',
                 default_value: str
                 ):
     connection.execute(sqlalchemy.text(
-        f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} SET DEFAULT {default_value};"""
+        f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} SET DEFAULT {default_value}"""
     ))
 
 
