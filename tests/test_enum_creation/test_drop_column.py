@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from alembic_postgresql_enum.enum_deletion import DropEnumOp
+from alembic_postgresql_enum.operations import DropEnumOp
 
 if TYPE_CHECKING:
     from sqlalchemy import Connection

@@ -2,8 +2,7 @@
 import enum
 from typing import TYPE_CHECKING
 
-from alembic_postgresql_enum import get_defined_enums, get_declared_enums
-from alembic_postgresql_enum.get_enum_data import TableReference
+from alembic_postgresql_enum.get_enum_data import TableReference, get_defined_enums, get_declared_enums
 from tests.base.render_and_run import compare_and_run
 from tests.schemas import ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA
 
@@ -54,17 +53,17 @@ def test_get_defined_enums_metadata(connection: 'Connection'):
     }
 
 
-def test_get_declared_enums():
+def test_get_declared_enums(connection: 'Connection'):
     declared_schema = my_metadata
 
     # Check that enum is not created inside `another` schema
-    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA)
+    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {}
     assert function_result.enum_table_references == {}
 
     # Check that enum is created inside `public` schema
-    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA)
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {
         'test_status': tuple(map(lambda item: item.value, _TestStatus))

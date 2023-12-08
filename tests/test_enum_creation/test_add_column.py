@@ -5,7 +5,7 @@ from alembic import autogenerate
 from alembic.autogenerate import api
 from alembic.operations import ops
 
-from alembic_postgresql_enum.enum_creation import CreateEnumOp
+from alembic_postgresql_enum.operations import CreateEnumOp
 from tests.base.render_and_run import compare_and_run
 from tests.schemas import get_schema_with_enum_variants, USER_TABLE_NAME, USER_STATUS_ENUM_NAME, \
     get_schema_without_enum, USER_STATUS_COLUMN_NAME, DEFAULT_SCHEMA, CAR_COLORS_ENUM_NAME, \
