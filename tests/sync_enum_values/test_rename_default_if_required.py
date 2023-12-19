@@ -22,3 +22,10 @@ def test_array_with_renames():
     assert (rename_default_if_required(old_default_value, 'order_status', [
         ('passive', 'inactive')
     ]) == """'{"inactive"}'::order_status""")
+
+
+def test_array_default_value():
+    old_default_value = """'{}'::order_status_old[]"""
+
+    assert (rename_default_if_required(old_default_value, 'order_status', [])
+            == """'{}'::order_status[]""")
