@@ -48,6 +48,7 @@ def rename_default_if_required(default_value: str,
                                enum_name: str,
                                enum_values_to_rename: List[Tuple[str, str]]
                                ) -> str:
+    is_array = default_value.endswith("[]")
     # remove old type postfix
     column_default_value = default_value[:default_value.find("::")]
 
@@ -55,4 +56,5 @@ def rename_default_if_required(default_value: str,
         column_default_value = column_default_value.replace(f"'{old_value}'", f"'{new_value}'")
         column_default_value = column_default_value.replace(f'"{old_value}"', f'"{new_value}"')
 
-    return f"{column_default_value}::{enum_name}"
+    suffix = "[]" if is_array else ""
+    return f"{column_default_value}::{enum_name}{suffix}"
