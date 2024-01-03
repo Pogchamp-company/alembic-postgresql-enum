@@ -38,7 +38,7 @@ def test_without_renames_with_schema():
     old_default_value = "'passive'::test.order_status_old"
 
     assert (rename_default_if_required(old_default_value, 'order_status', [], "test")
-            == "'passive'::order_status")
+            == "'passive'::test.order_status")
 
 
 def test_with_renames_with_schema():
