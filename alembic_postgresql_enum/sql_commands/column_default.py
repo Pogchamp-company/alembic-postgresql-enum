@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Union, List, Tuple
+from typing import TYPE_CHECKING, Optional, Union, List, Tuple
 
 import sqlalchemy
 
@@ -46,7 +46,8 @@ def set_default(connection: 'Connection',
 
 def rename_default_if_required(default_value: str,
                                enum_name: str,
-                               enum_values_to_rename: List[Tuple[str, str]]
+                               enum_values_to_rename: List[Tuple[str, str]],
+                               schema: Optional[str],
                                ) -> str:
     is_array = default_value.endswith("[]")
     # remove old type postfix
@@ -57,4 +58,6 @@ def rename_default_if_required(default_value: str,
         column_default_value = column_default_value.replace(f'"{old_value}"', f'"{new_value}"')
 
     suffix = "[]" if is_array else ""
+    if schema:
+        return f"{column_default_value}::{schema}.{enum_name}{suffix}"
     return f"{column_default_value}::{enum_name}{suffix}"
