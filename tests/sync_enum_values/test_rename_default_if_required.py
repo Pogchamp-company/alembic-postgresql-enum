@@ -30,8 +30,9 @@ def test_array_default_value_no_schema():
     assert (rename_default_if_required(old_default_value, 'order_status', [], None)
             == """'{}'::order_status[]""")
     
-
+##################################################
 # Tests with schema provided
+##################################################
 
 def test_without_renames_no_schema():
     old_default_value = "'passive'::order_status_old"
