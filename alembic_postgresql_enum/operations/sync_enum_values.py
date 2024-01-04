@@ -83,8 +83,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 ) from error
 
             if column_default is not None:
-                column_default = rename_default_if_required(column_default, enum_name,
-                                                            enum_values_to_rename, schema)
+                column_default = rename_default_if_required(schema, column_default, enum_name,
+                                                            enum_values_to_rename)
 
                 set_default(connection, schema, table_reference, column_default)
 
