@@ -44,7 +44,8 @@ def set_default(connection: 'Connection',
     ))
 
 
-def rename_default_if_required(default_value: str,
+def rename_default_if_required(schema: str,
+                               default_value: str,
                                enum_name: str,
                                enum_values_to_rename: List[Tuple[str, str]]
                                ) -> str:
@@ -57,4 +58,6 @@ def rename_default_if_required(default_value: str,
         column_default_value = column_default_value.replace(f'"{old_value}"', f'"{new_value}"')
 
     suffix = "[]" if is_array else ""
+    if schema:
+        return f"{column_default_value}::{schema}.{enum_name}{suffix}"
     return f"{column_default_value}::{enum_name}{suffix}"
