@@ -4,8 +4,11 @@ from typing import TYPE_CHECKING
 from alembic import autogenerate
 from sqlalchemy.dialects import postgresql
 
-from tests.schemas import USER_TABLE_NAME, USER_STATUS_ENUM_NAME, \
-    USER_STATUS_COLUMN_NAME
+from tests.schemas import (
+    USER_TABLE_NAME,
+    USER_STATUS_ENUM_NAME,
+    USER_STATUS_COLUMN_NAME,
+)
 from tests.utils.migration_context import create_migration_context
 
 if TYPE_CHECKING:
@@ -13,10 +16,10 @@ if TYPE_CHECKING:
 from sqlalchemy import Table, Column, Integer, MetaData
 
 
-def test_create_enum_on_create_table_inside_new_schema(connection: 'Connection'):
+def test_create_enum_on_create_table_inside_new_schema(connection: "Connection"):
     """Check that library correctly creates enum before its use inside create_table inside new schema"""
     new_enum_variants = ["active", "passive"]
-    non_existing_schema = 'non_existing_schema'
+    non_existing_schema = "non_existing_schema"
 
     target_schema = MetaData(schema=non_existing_schema)
 
@@ -24,10 +27,12 @@ def test_create_enum_on_create_table_inside_new_schema(connection: 'Connection')
         USER_TABLE_NAME,
         target_schema,
         Column("id", Integer, primary_key=True),
-        Column(USER_STATUS_COLUMN_NAME, postgresql.ENUM(*new_enum_variants,
-                                                        name=USER_STATUS_ENUM_NAME,
-                                                        metadata=target_schema
-                                                        )),
+        Column(
+            USER_STATUS_COLUMN_NAME,
+            postgresql.ENUM(
+                *new_enum_variants, name=USER_STATUS_ENUM_NAME, metadata=target_schema
+            ),
+        ),
     )
 
     expected_upgrade = f"""
@@ -54,11 +59,15 @@ def test_create_enum_on_create_table_inside_new_schema(connection: 'Connection')
     # todo _render_migration_diffs marked as legacy, maybe find something else
     autogenerate._render_migration_diffs(migration_context, template_args)
 
-    upgrade_code = textwrap.dedent('    ' + template_args["upgrades"])
-    downgrade_code = textwrap.dedent('    ' + template_args["downgrades"])
+    upgrade_code = textwrap.dedent("    " + template_args["upgrades"])
+    downgrade_code = textwrap.dedent("    " + template_args["downgrades"])
 
-    expected_upgrade = textwrap.dedent(expected_upgrade).strip('\n ')
-    expected_downgrade = textwrap.dedent(expected_downgrade).strip('\n ')
+    expected_upgrade = textwrap.dedent(expected_upgrade).strip("\n ")
+    expected_downgrade = textwrap.dedent(expected_downgrade).strip("\n ")
 
-    assert upgrade_code == expected_upgrade, f'Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}'
-    assert downgrade_code == expected_downgrade, f'Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}'
+    assert (
+        upgrade_code == expected_upgrade
+    ), f"Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}"
+    assert (
+        downgrade_code == expected_downgrade
+    ), f"Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}"
