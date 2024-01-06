@@ -56,7 +56,15 @@ def test_get_declared_enums(connection: "Connection"):
 
     assert function_result.enum_values == {"test_status": tuple(map(lambda item: item.value, _TestStatus))}
     assert function_result.enum_table_references == {
-        "test_status": frozenset([TableReference(TableWithExplicitEnumSchema.__tablename__, "status")])
+        "test_status": frozenset(
+            [
+                TableReference(
+                    table_schema=ANOTHER_SCHEMA_NAME,
+                    table_name=TableWithExplicitEnumSchema.__tablename__,
+                    column_name="status",
+                )
+            ]
+        )
     }
 
 

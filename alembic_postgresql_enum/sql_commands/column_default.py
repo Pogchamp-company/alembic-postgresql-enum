@@ -2,17 +2,12 @@ from typing import TYPE_CHECKING, Union, List, Tuple
 
 import sqlalchemy
 
-from alembic_postgresql_enum.get_enum_data import TableReference
-
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
 
 def get_column_default(
-    connection: "Connection",
-    schema: str,
-    table_name: str,
-    column_name: str,
+    connection: "Connection", table_schema: str, table_name: str, column_name: str
 ) -> Union[str, None]:
     """Result example: "'active'::order_status" """
     default_value = connection.execute(
@@ -21,7 +16,7 @@ def get_column_default(
         SELECT column_default
         FROM information_schema.columns
         WHERE 
-            table_schema = '{schema}' AND 
+            table_schema = '{table_schema}' AND 
             table_name = '{table_name}' AND 
             column_name = '{column_name}'
     """
@@ -30,27 +25,26 @@ def get_column_default(
     return default_value
 
 
-def drop_default(
-    connection: "Connection",
-    schema: str,
-    table_reference: TableReference,
-):
+def drop_default(connection: "Connection", table_schema: str, table_name: str, column_name: str):
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} DROP DEFAULT"""
+            f"""ALTER TABLE {table_schema}.{table_name}
+             ALTER COLUMN {column_name} DROP DEFAULT"""
         )
     )
 
 
 def set_default(
     connection: "Connection",
-    schema: str,
-    table_reference: TableReference,
+    table_schema: str,
+    table_name: str,
+    column_name: str,
     default_value: str,
 ):
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} SET DEFAULT {default_value}"""
+            f"""ALTER TABLE {table_schema}.{table_name} 
+            ALTER COLUMN {column_name} SET DEFAULT {default_value}"""
         )
     )
 

@@ -17,13 +17,16 @@ class ColumnType(PyEnum):
 class TableReference:
     table_name: str
     column_name: str
+    table_schema: str = None
     column_type: ColumnType = ColumnType.COMMON
     existing_server_default: str = None
 
     def __repr__(self):
         result_str = "TableReference("
-        result_str += f"{self.table_name!r}, "
-        result_str += f"{self.column_name!r}, "
+        if self.table_schema:
+            result_str += f"table_schema={self.table_schema!r}, "
+        result_str += f"table_name={self.table_name!r}, "
+        result_str += f"column_name={self.column_name!r}, "
         if self.column_type != ColumnType.COMMON:
             result_str += f"column_type=ColumnType.{self.column_type.name}, "
         if self.existing_server_default is not None:

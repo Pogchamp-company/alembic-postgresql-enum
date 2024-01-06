@@ -100,9 +100,16 @@ def get_declared_enums(
                 if column_type.name not in enum_name_to_values:
                     enum_name_to_values[column_type.name] = get_enum_values(column_type)
 
-                column_default = get_column_default(connection, schema, table.name, column.name)
+                table_schema = table.schema or default_schema
+                column_default = get_column_default(connection, table.schema, table.name, column.name)
                 enum_name_to_table_references[column_type.name].add(
-                    TableReference(table.name, column.name, column_type_wrapper, column_default)
+                    TableReference(
+                        table_schema=table_schema,
+                        table_name=table.name,
+                        column_name=column.name,
+                        column_type=column_type_wrapper,
+                        existing_server_default=column_default,
+                    )
                 )
 
     return DeclaredEnumValues(

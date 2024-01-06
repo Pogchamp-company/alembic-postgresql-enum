@@ -87,6 +87,12 @@ def test_get_declared_enums_for_custom_enum(connection: "Connection"):
     }
     assert function_result.enum_table_references == {
         ORDER_DELIVERY_STATUS_ENUM_NAME: frozenset(
-            (TableReference(ORDER_TABLE_NAME, ORDER_DELIVERY_STATUS_COLUMN_NAME),)
+            (
+                TableReference(
+                    table_schema=DEFAULT_SCHEMA,
+                    table_name=ORDER_TABLE_NAME,
+                    column_name=ORDER_DELIVERY_STATUS_COLUMN_NAME,
+                ),
+            )
         )
     }

@@ -82,7 +82,9 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             column_default = table_reference.existing_server_default
 
             if column_default is not None:
-                drop_default(connection, schema, table_reference)
+                drop_default(
+                    connection, table_reference.table_schema, table_reference.table_name, table_reference.column_name
+                )
 
             try:
                 cast_old_enum_type_to_new(
@@ -102,7 +104,13 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             if column_default is not None:
                 column_default = rename_default_if_required(schema, column_default, enum_name, enum_values_to_rename)
 
-                set_default(connection, schema, table_reference, column_default)
+                set_default(
+                    connection,
+                    table_reference.table_schema,
+                    table_reference.table_name,
+                    table_reference.column_name,
+                    column_default,
+                )
 
         drop_comparison_operators(connection, schema, enum_name, temporary_enum_name)
         drop_type(connection, schema, temporary_enum_name)
@@ -111,7 +119,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
     def sync_enum_values(
         cls,
         operations,
-        schema: str,
+        enum_schema: str,
         enum_name: str,
         new_values: List[str],
         affected_columns: List[Tuple[str, str]],
@@ -121,7 +129,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         Replace enum values with `new_values`
         :param operations:
             ...
-        :param str schema:
+        :param str enum_schema:
             Schema name.
         :param enum_name:
             Enumeration type name.
@@ -151,8 +159,16 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                         column_type = affected_column[2]
                     else:
                         column_type = ColumnType.COMMON
-                    column_default = get_column_default(connection, schema, table_name, column_name)
-                    table_references.append(TableReference(table_name, column_name, column_type, column_default))
+                    column_default = get_column_default(connection, enum_schema, table_name, column_name)
+                    table_references.append(
+                        TableReference(
+                            table_name,
+                            column_name,
+                            table_schema=enum_schema,
+                            column_type=column_type,
+                            existing_server_default=column_default,
+                        )
+                    )
 
                 elif isinstance(affected_column, TableReference):
                     table_references.append(affected_column)
@@ -161,7 +177,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
             cls._set_enum_values(
                 connection,
-                schema,
+                enum_schema,
                 enum_name,
                 new_values,
                 table_references,
