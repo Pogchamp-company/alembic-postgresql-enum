@@ -47,9 +47,7 @@ def get_my_metadata() -> MetaData:
     return my_metadata
 
 
-@pytest.mark.skipif(
-    sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style"
-)
+@pytest.mark.skipif(sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style")
 def test_get_defined_enums_metadata(connection: "Connection"):
     my_metadata = get_my_metadata()
     database_schema = my_metadata
@@ -57,42 +55,28 @@ def test_get_defined_enums_metadata(connection: "Connection"):
 
     function_result = get_defined_enums(connection, "public")
 
-    assert function_result == {
-        "test_status": tuple(map(lambda item: item.value, _TestStatus))
-    }
+    assert function_result == {"test_status": tuple(map(lambda item: item.value, _TestStatus))}
 
 
-@pytest.mark.skipif(
-    sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style"
-)
+@pytest.mark.skipif(sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style")
 def test_get_declared_enums(connection: "Connection"):
     my_metadata = get_my_metadata()
     declared_schema = my_metadata
 
     # Check that enum is not created inside `another` schema
-    function_result = get_declared_enums(
-        declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA, connection
-    )
+    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {}
     assert function_result.enum_table_references == {}
 
     # Check that enum is created inside `public` schema
-    function_result = get_declared_enums(
-        declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection
-    )
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection)
 
-    assert function_result.enum_values == {
-        "test_status": tuple(map(lambda item: item.value, _TestStatus))
-    }
-    assert function_result.enum_table_references == {
-        "test_status": frozenset([TableReference("test", "status")])
-    }
+    assert function_result.enum_values == {"test_status": tuple(map(lambda item: item.value, _TestStatus))}
+    assert function_result.enum_table_references == {"test_status": frozenset([TableReference("test", "status")])}
 
 
-@pytest.mark.skipif(
-    sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style"
-)
+@pytest.mark.skipif(sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style")
 def test_compare_and_run_create_table(connection: "Connection"):
     my_metadata = get_my_metadata()
     target_schema = my_metadata
@@ -120,9 +104,7 @@ def test_compare_and_run_create_table(connection: "Connection"):
     )
 
 
-@pytest.mark.skipif(
-    sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style"
-)
+@pytest.mark.skipif(sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style")
 def test_compare_and_run(connection: "Connection"):
     my_metadata = get_my_metadata()
     database_schema = my_metadata

@@ -36,10 +36,7 @@ def compare_enums(
     # Issue #40
     # Add schema if it is gonna be created inside the migration
     for operations_group in upgrade_ops.ops:
-        if (
-            isinstance(operations_group, CreateTableOp)
-            and operations_group.schema not in schema_names
-        ):
+        if isinstance(operations_group, CreateTableOp) and operations_group.schema not in schema_names:
             schema_names.append(operations_group.schema)
 
     for schema in schema_names:
@@ -48,9 +45,7 @@ def compare_enums(
             schema = default_schema
 
         definitions = get_defined_enums(autogen_context.connection, schema)
-        declarations = get_declared_enums(
-            autogen_context.metadata, schema, default_schema, autogen_context.connection
-        )
+        declarations = get_declared_enums(autogen_context.metadata, schema, default_schema, autogen_context.connection)
 
         create_new_enums(definitions, declarations.enum_values, schema, upgrade_ops)
 

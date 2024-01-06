@@ -21,9 +21,9 @@ class ReprWorkaround(postgresql.ENUM):
     __module__ = "sqlalchemy.dialects.postgresql"
 
     def __repr__(self):
-        return f"{super().__repr__()[:-1]}, create_type=False)".replace(
-            "ReprWorkaround", "ENUM"
-        ).replace(", metadata=MetaData()", "")
+        return f"{super().__repr__()[:-1]}, create_type=False)".replace("ReprWorkaround", "ENUM").replace(
+            ", metadata=MetaData()", ""
+        )
 
 
 def inject_repr_into_enums(column: Column):

@@ -76,9 +76,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         rename_type(connection, schema, enum_name, temporary_enum_name)
         create_type(connection, schema, enum_name, new_values)
 
-        create_comparison_operators(
-            connection, schema, enum_name, temporary_enum_name, enum_values_to_rename
-        )
+        create_comparison_operators(connection, schema, enum_name, temporary_enum_name, enum_values_to_rename)
 
         for table_reference in affected_columns:
             column_default = table_reference.existing_server_default
@@ -102,9 +100,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 ) from error
 
             if column_default is not None:
-                column_default = rename_default_if_required(
-                    schema, column_default, enum_name, enum_values_to_rename
-                )
+                column_default = rename_default_if_required(schema, column_default, enum_name, enum_values_to_rename)
 
                 set_default(connection, schema, table_reference, column_default)
 
@@ -155,21 +151,13 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                         column_type = affected_column[2]
                     else:
                         column_type = ColumnType.COMMON
-                    column_default = get_column_default(
-                        connection, schema, table_name, column_name
-                    )
-                    table_references.append(
-                        TableReference(
-                            table_name, column_name, column_type, column_default
-                        )
-                    )
+                    column_default = get_column_default(connection, schema, table_name, column_name)
+                    table_references.append(TableReference(table_name, column_name, column_type, column_default))
 
                 elif isinstance(affected_column, TableReference):
                     table_references.append(affected_column)
                 else:
-                    raise ValueError(
-                        "Affected columns must contain tuples or TableReferences"
-                    )
+                    raise ValueError("Affected columns must contain tuples or TableReferences")
 
             cls._set_enum_values(
                 connection,
@@ -190,12 +178,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
     @property
     def is_column_type_import_needed(self) -> bool:
-        return any(
-            (
-                affected_column.is_column_type_import_needed
-                for affected_column in self.affected_columns
-            )
-        )
+        return any((affected_column.is_column_type_import_needed for affected_column in self.affected_columns))
 
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)

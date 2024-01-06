@@ -51,34 +51,24 @@ def test_get_defined_enums_metadata(connection: "Connection"):
     # Check that enum is created inside `public` schema
     function_result = get_defined_enums(connection, DEFAULT_SCHEMA)
 
-    assert function_result == {
-        "test_status": tuple(map(lambda item: item.value, _TestStatus))
-    }
+    assert function_result == {"test_status": tuple(map(lambda item: item.value, _TestStatus))}
 
 
 def test_get_declared_enums(connection: "Connection"):
     declared_schema = my_metadata
 
     # Check that enum is not created inside `another` schema
-    function_result = get_declared_enums(
-        declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA, connection
-    )
+    function_result = get_declared_enums(declared_schema, ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {}
     assert function_result.enum_table_references == {}
 
     # Check that enum is created inside `public` schema
-    function_result = get_declared_enums(
-        declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection
-    )
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection)
 
-    assert function_result.enum_values == {
-        "test_status": tuple(map(lambda item: item.value, _TestStatus))
-    }
+    assert function_result.enum_values == {"test_status": tuple(map(lambda item: item.value, _TestStatus))}
     assert function_result.enum_table_references == {
-        "test_status": frozenset(
-            [TableReference(TableWithExplicitEnumSchema.__tablename__, "status")]
-        )
+        "test_status": frozenset([TableReference(TableWithExplicitEnumSchema.__tablename__, "status")])
     }
 
 

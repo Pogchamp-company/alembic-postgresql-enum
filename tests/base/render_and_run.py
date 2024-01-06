@@ -36,12 +36,8 @@ def compare_and_run(
     expected_upgrade = textwrap.dedent(expected_upgrade).strip("\n ")
     expected_downgrade = textwrap.dedent(expected_downgrade).strip("\n ")
 
-    assert (
-        upgrade_code == expected_upgrade
-    ), f"Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}"
-    assert (
-        downgrade_code == expected_downgrade
-    ), f"Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}"
+    assert upgrade_code == expected_upgrade, f"Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}"
+    assert downgrade_code == expected_downgrade, f"Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}"
 
     exec(
         upgrade_code,

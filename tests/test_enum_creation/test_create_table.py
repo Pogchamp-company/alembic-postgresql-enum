@@ -175,9 +175,7 @@ def test_create_enum_on_create_table_with_another_schema_on_metadata(
         Column("id", Integer, primary_key=True),
         Column(
             USER_STATUS_COLUMN_NAME,
-            postgresql.ENUM(
-                *new_enum_variants, name=USER_STATUS_ENUM_NAME, metadata=target_schema
-            ),
+            postgresql.ENUM(*new_enum_variants, name=USER_STATUS_ENUM_NAME, metadata=target_schema),
         ),
     )
 

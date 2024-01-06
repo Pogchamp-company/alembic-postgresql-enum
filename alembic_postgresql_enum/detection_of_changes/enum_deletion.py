@@ -20,6 +20,4 @@ def drop_unused_enums(
     for name, new_values in defined_enums.items():
         if name not in declared_enums:
             log.info("Detected unused enum %r with values %r", name, new_values)
-            upgrade_ops.ops.append(
-                DropEnumOp(name=name, schema=schema, enum_values=new_values)
-            )
+            upgrade_ops.ops.append(DropEnumOp(name=name, schema=schema, enum_values=new_values))

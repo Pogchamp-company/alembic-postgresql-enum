@@ -79,15 +79,11 @@ def get_schema_with_custom_enum() -> MetaData:
 def test_get_declared_enums_for_custom_enum(connection: "Connection"):
     declared_schema = get_schema_with_custom_enum()
 
-    function_result = get_declared_enums(
-        declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection
-    )
+    function_result = get_declared_enums(declared_schema, DEFAULT_SCHEMA, DEFAULT_SCHEMA, connection)
 
     assert function_result.enum_values == {
         # All declared enum variants must be taken from OrderDeliveryStatus values, see ValuesEnum
-        ORDER_DELIVERY_STATUS_ENUM_NAME: tuple(
-            enum_item.value for enum_item in OrderDeliveryStatus
-        )
+        ORDER_DELIVERY_STATUS_ENUM_NAME: tuple(enum_item.value for enum_item in OrderDeliveryStatus)
     }
     assert function_result.enum_table_references == {
         ORDER_DELIVERY_STATUS_ENUM_NAME: frozenset(

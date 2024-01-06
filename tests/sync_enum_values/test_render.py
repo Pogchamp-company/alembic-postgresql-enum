@@ -119,9 +119,7 @@ def test_remove_enum_value_diff_tuple(connection: "Connection"):
     assert operation_name == SyncEnumValuesOp.operation_name
     assert old_values == old_enum_variants
     assert new_values == new_enum_variants
-    assert affected_columns == [
-        TableReference(USER_TABLE_NAME, USER_STATUS_COLUMN_NAME)
-    ]
+    assert affected_columns == [TableReference(USER_TABLE_NAME, USER_STATUS_COLUMN_NAME)]
 
 
 def test_rename_enum_value_diff_tuple(connection: "Connection"):
@@ -158,6 +156,4 @@ def test_rename_enum_value_diff_tuple(connection: "Connection"):
     assert operation_name == SyncEnumValuesOp.operation_name
     assert old_values == old_enum_variants
     assert new_values == new_enum_variants
-    assert affected_columns == [
-        TableReference(USER_TABLE_NAME, USER_STATUS_COLUMN_NAME)
-    ]
+    assert affected_columns == [TableReference(USER_TABLE_NAME, USER_STATUS_COLUMN_NAME)]

@@ -17,9 +17,7 @@ def test_sync_enum_values_unique_column_with_equals(connection: "Connection"):
         USER_TABLE_NAME,
         database_schema,
         Column("id", Integer, primary_key=True),
-        Column(
-            "role", postgresql.ENUM(*old_enum_variants, name="user_role"), nullable=True
-        ),
+        Column("role", postgresql.ENUM(*old_enum_variants, name="user_role"), nullable=True),
         Index(
             "admin_unique",
             "role",
@@ -62,9 +60,7 @@ def test_sync_enum_values_unique_column_with_not_equals(connection: "Connection"
         USER_TABLE_NAME,
         database_schema,
         Column("id", Integer, primary_key=True),
-        Column(
-            "role", postgresql.ENUM(*old_enum_variants, name="user_role"), nullable=True
-        ),
+        Column("role", postgresql.ENUM(*old_enum_variants, name="user_role"), nullable=True),
         Index(
             "admin_unique",
             "role",

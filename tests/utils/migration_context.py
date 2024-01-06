@@ -22,9 +22,7 @@ def default_migration_options(target_schema: Union[MetaData, List[MetaData]]) ->
     }
 
 
-def create_migration_context(
-    connection: "Connection", target_schema: Union[MetaData, List[MetaData]]
-):
+def create_migration_context(connection: "Connection", target_schema: Union[MetaData, List[MetaData]]):
     return MigrationContext.configure(
         connection=connection,
         opts=default_migration_options(target_schema),

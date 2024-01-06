@@ -105,9 +105,7 @@ def get_declared_enum_values_with_orders_and_users() -> DeclaredEnumValues:
                 )
             ),
             "order_status_enum": frozenset((TableReference("orders", "order_status"),)),
-            "car_color_enum": frozenset(
-                (TableReference("cars", "colors", ColumnType.ARRAY),)
-            ),
+            "car_color_enum": frozenset((TableReference("cars", "colors", ColumnType.ARRAY),)),
         },
     )
 
@@ -119,28 +117,20 @@ def _enum_column_factory(
     column_type: ColumnType,
 ) -> Column:
     if column_type == ColumnType.COMMON:
-        return Column(
-            column_name, postgresql.ENUM(*target.enum_values[enum_name], name=enum_name)
-        )
+        return Column(column_name, postgresql.ENUM(*target.enum_values[enum_name], name=enum_name))
     return Column(
         column_name,
-        column_type.value(
-            postgresql.ENUM(*target.enum_values[enum_name], name=enum_name)
-        ),
+        column_type.value(postgresql.ENUM(*target.enum_values[enum_name], name=enum_name)),
     )
 
 
 def get_schema_by_declared_enum_values(target: DeclaredEnumValues) -> MetaData:
     schema = MetaData()
 
-    tables_to_columns: DefaultDict[Any, Set[Tuple[str, str, ColumnType]]] = defaultdict(
-        set
-    )
+    tables_to_columns: DefaultDict[Any, Set[Tuple[str, str, ColumnType]]] = defaultdict(set)
     for enum_name, references in target.enum_table_references.items():
         for reference in references:
-            tables_to_columns[reference.table_name].add(
-                (reference.column_name, enum_name, reference.column_type)
-            )
+            tables_to_columns[reference.table_name].add((reference.column_name, enum_name, reference.column_type))
 
     for table_name, columns_with_enum_names in tables_to_columns.items():
         Table(

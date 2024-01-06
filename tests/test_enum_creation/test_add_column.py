@@ -125,9 +125,7 @@ def test_with_non_native_enum(connection: "Connection"):
         Column("id", Integer, primary_key=True),
         Column(
             USER_STATUS_COLUMN_NAME,
-            sqlalchemy.Enum(
-                *new_enum_variants, name=USER_STATUS_ENUM_NAME, native_enum=False
-            ),
+            sqlalchemy.Enum(*new_enum_variants, name=USER_STATUS_ENUM_NAME, native_enum=False),
         ),
     )
 

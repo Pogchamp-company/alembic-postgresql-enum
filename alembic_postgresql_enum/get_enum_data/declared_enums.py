@@ -23,9 +23,7 @@ def get_enum_values(enum_type: sqlalchemy.Enum) -> "Tuple[str, ...]":
         dialect = postgresql.dialect
 
         def value_processor(value):
-            return enum_type.process_bind_param(
-                enum_type.impl.result_processor(dialect, enum_type)(value), dialect
-            )
+            return enum_type.process_bind_param(enum_type.impl.result_processor(dialect, enum_type)(value), dialect)
 
     else:
 
@@ -74,9 +72,7 @@ def get_declared_enums(
         }
     """
     enum_name_to_values = dict()
-    enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(
-        set
-    )
+    enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(set)
 
     if isinstance(metadata, list):
         metadata_list = metadata
@@ -104,13 +100,9 @@ def get_declared_enums(
                 if column_type.name not in enum_name_to_values:
                     enum_name_to_values[column_type.name] = get_enum_values(column_type)
 
-                column_default = get_column_default(
-                    connection, schema, table.name, column.name
-                )
+                column_default = get_column_default(connection, schema, table.name, column.name)
                 enum_name_to_table_references[column_type.name].add(
-                    TableReference(
-                        table.name, column.name, column_type_wrapper, column_default
-                    )
+                    TableReference(table.name, column.name, column_type_wrapper, column_default)
                 )
 
     return DeclaredEnumValues(

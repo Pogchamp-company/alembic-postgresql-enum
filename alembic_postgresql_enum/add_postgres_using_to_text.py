@@ -19,9 +19,7 @@ class PostgresUsingAlterColumnOp(AlterColumnOp):
 
 
 @renderers.dispatch_for(PostgresUsingAlterColumnOp)
-def _postgres_using_alter_column(
-    autogen_context: AutogenContext, op: ops.AlterColumnOp
-) -> str:
+def _postgres_using_alter_column(autogen_context: AutogenContext, op: ops.AlterColumnOp) -> str:
     alter_column_expression = render._alter_column(autogen_context, op)
 
     postgresql_using = op.kw.get("postgresql_using", None)
@@ -42,9 +40,7 @@ log = logging.getLogger(f"alembic.{__name__}")
 
 def add_postgres_using_to_alter_operation(op: AlterColumnOp):
     op.kw["postgresql_using"] = f"{op.column_name}::{op.modify_type.name}"
-    log.info(
-        "postgresql_using added to %r.%r alteration", op.table_name, op.column_name
-    )
+    log.info("postgresql_using added to %r.%r alteration", op.table_name, op.column_name)
     op.__class__ = PostgresUsingAlterColumnOp
 
 
@@ -54,7 +50,5 @@ def add_postgres_using_to_text(upgrade_ops: UpgradeOps):
         if isinstance(group_op, ModifyTableOps):
             for i, op in enumerate(group_op.ops):
                 if isinstance(op, AlterColumnOp):
-                    if isinstance(op.existing_type, String) and column_type_is_enum(
-                        op.modify_type
-                    ):
+                    if isinstance(op.existing_type, String) and column_type_is_enum(op.modify_type):
                         add_postgres_using_to_alter_operation(op)

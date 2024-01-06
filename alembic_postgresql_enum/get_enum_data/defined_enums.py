@@ -29,7 +29,4 @@ def get_defined_enums(connection: "Connection", schema: str) -> EnumNamesToValue
             "my_enum": tuple(["a", "b", "c"]),
         }
     """
-    return {
-        _remove_schema_prefix(name, schema): tuple(values)
-        for name, values in get_all_enums(connection, schema)
-    }
+    return {_remove_schema_prefix(name, schema): tuple(values) for name, values in get_all_enums(connection, schema)}

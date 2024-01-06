@@ -74,19 +74,11 @@ def drop_type(connection: "Connection", schema: str, type_name: str):
     connection.execute(sqlalchemy.text(f"""DROP TYPE {schema}.{type_name}"""))
 
 
-def rename_type(
-    connection: "Connection", schema: str, type_name: str, new_type_name: str
-):
-    connection.execute(
-        sqlalchemy.text(
-            f"""ALTER TYPE {schema}.{type_name} RENAME TO {new_type_name}"""
-        )
-    )
+def rename_type(connection: "Connection", schema: str, type_name: str, new_type_name: str):
+    connection.execute(sqlalchemy.text(f"""ALTER TYPE {schema}.{type_name} RENAME TO {new_type_name}"""))
 
 
-def create_type(
-    connection: "Connection", schema: str, type_name: str, enum_values: List[str]
-):
+def create_type(connection: "Connection", schema: str, type_name: str, enum_values: List[str]):
     connection.execute(
         sqlalchemy.text(
             f"""CREATE TYPE {schema}.{type_name} AS ENUM({', '.join(f"'{value}'" for value in enum_values)})"""

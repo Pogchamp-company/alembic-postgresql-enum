@@ -66,12 +66,8 @@ def rename_default_if_required(
     column_default_value = default_value[: default_value.find("::")]
 
     for old_value, new_value in enum_values_to_rename:
-        column_default_value = column_default_value.replace(
-            f"'{old_value}'", f"'{new_value}'"
-        )
-        column_default_value = column_default_value.replace(
-            f'"{old_value}"', f'"{new_value}"'
-        )
+        column_default_value = column_default_value.replace(f"'{old_value}'", f"'{new_value}'")
+        column_default_value = column_default_value.replace(f'"{old_value}"', f'"{new_value}"')
 
     suffix = "[]" if is_array else ""
     if schema:

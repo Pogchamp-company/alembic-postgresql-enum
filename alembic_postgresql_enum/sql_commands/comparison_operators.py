@@ -107,6 +107,4 @@ def drop_comparison_operators(
     old_enum_name: str,
 ):
     for _, comparison_function_name in OPERATORS_TO_CREATE:
-        _drop_comparison_operator(
-            connection, schema, enum_name, old_enum_name, comparison_function_name
-        )
+        _drop_comparison_operator(connection, schema, enum_name, old_enum_name, comparison_function_name)

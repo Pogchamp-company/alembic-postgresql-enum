@@ -39,8 +39,7 @@ def test_add_new_enum_value_render_with_array(connection: "Connection"):
     autogenerate._render_migration_diffs(context, template_args)
 
     assert template_args["imports"] == (
-        "from alembic_postgresql_enum import ColumnType"
-        "\nfrom alembic_postgresql_enum import TableReference"
+        "from alembic_postgresql_enum import ColumnType" "\nfrom alembic_postgresql_enum import TableReference"
     )
 
     assert (
@@ -125,9 +124,7 @@ def test_remove_enum_value_diff_tuple_with_array(connection: "Connection"):
     assert operation_name == SyncEnumValuesOp.operation_name
     assert old_values == old_enum_variants
     assert new_values == new_enum_variants
-    assert affected_columns == [
-        TableReference(CAR_TABLE_NAME, CAR_COLORS_COLUMN_NAME, ColumnType.ARRAY)
-    ]
+    assert affected_columns == [TableReference(CAR_TABLE_NAME, CAR_COLORS_COLUMN_NAME, ColumnType.ARRAY)]
 
 
 def test_rename_enum_value_diff_tuple_with_array(connection: "Connection"):
@@ -164,6 +161,4 @@ def test_rename_enum_value_diff_tuple_with_array(connection: "Connection"):
     assert operation_name == SyncEnumValuesOp.operation_name
     assert old_values == old_enum_variants
     assert new_values == new_enum_variants
-    assert affected_columns == [
-        TableReference(CAR_TABLE_NAME, CAR_COLORS_COLUMN_NAME, ColumnType.ARRAY)
-    ]
+    assert affected_columns == [TableReference(CAR_TABLE_NAME, CAR_COLORS_COLUMN_NAME, ColumnType.ARRAY)]

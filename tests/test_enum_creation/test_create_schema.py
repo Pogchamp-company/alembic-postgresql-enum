@@ -29,9 +29,7 @@ def test_create_enum_on_create_table_inside_new_schema(connection: "Connection")
         Column("id", Integer, primary_key=True),
         Column(
             USER_STATUS_COLUMN_NAME,
-            postgresql.ENUM(
-                *new_enum_variants, name=USER_STATUS_ENUM_NAME, metadata=target_schema
-            ),
+            postgresql.ENUM(*new_enum_variants, name=USER_STATUS_ENUM_NAME, metadata=target_schema),
         ),
     )
 
@@ -65,9 +63,5 @@ def test_create_enum_on_create_table_inside_new_schema(connection: "Connection")
     expected_upgrade = textwrap.dedent(expected_upgrade).strip("\n ")
     expected_downgrade = textwrap.dedent(expected_downgrade).strip("\n ")
 
-    assert (
-        upgrade_code == expected_upgrade
-    ), f"Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}"
-    assert (
-        downgrade_code == expected_downgrade
-    ), f"Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}"
+    assert upgrade_code == expected_upgrade, f"Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}"
+    assert downgrade_code == expected_downgrade, f"Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}"

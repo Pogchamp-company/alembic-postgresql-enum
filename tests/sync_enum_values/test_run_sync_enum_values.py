@@ -114,9 +114,7 @@ def test_sync_enum_values_with_server_default(connection: "Connection"):
     mc = MigrationContext.configure(connection)
     ops = Operations(mc)
 
-    ops.sync_enum_values(
-        DEFAULT_SCHEMA, "order_status", new_enum_variants, (("orders", "status"),)
-    )
+    ops.sync_enum_values(DEFAULT_SCHEMA, "order_status", new_enum_variants, (("orders", "status"),))
 
     defined = get_defined_enums(connection, DEFAULT_SCHEMA)
 
@@ -155,9 +153,7 @@ def test_sync_enum_values_with_server_default_renamed(connection: "Connection"):
     )
 
     defined = get_defined_enums(connection, DEFAULT_SCHEMA)
-    order_status_default = get_column_default(
-        connection, DEFAULT_SCHEMA, "orders", "status"
-    )
+    order_status_default = get_column_default(connection, DEFAULT_SCHEMA, "orders", "status")
 
     assert order_status_default == "'inactive'::order_status"
     assert defined == {"order_status": tuple(new_enum_variants)}
