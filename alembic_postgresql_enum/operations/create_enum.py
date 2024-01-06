@@ -5,10 +5,11 @@ from .enum_lifecycle_base import EnumLifecycleOp
 
 
 class CreateEnumOp(EnumLifecycleOp):
-    operation_name = 'create_enum'
+    operation_name = "create_enum"
 
     def reverse(self):
         from .drop_enum import DropEnumOp
+
         return DropEnumOp(
             name=self.name,
             schema=self.schema,

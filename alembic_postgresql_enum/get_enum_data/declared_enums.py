@@ -10,22 +10,28 @@ from alembic_postgresql_enum.sql_commands.column_default import get_column_defau
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
-from alembic_postgresql_enum.get_enum_data import DeclaredEnumValues, TableReference, ColumnType
+from alembic_postgresql_enum.get_enum_data import (
+    DeclaredEnumValues,
+    TableReference,
+    ColumnType,
+)
 
 
-def get_enum_values(enum_type: sqlalchemy.Enum) -> 'Tuple[str, ...]':
+def get_enum_values(enum_type: sqlalchemy.Enum) -> "Tuple[str, ...]":
     # For specific case when types.TypeDecorator is used
     if isinstance(enum_type, sqlalchemy.types.TypeDecorator):
         dialect = postgresql.dialect
 
         def value_processor(value):
             return enum_type.process_bind_param(
-                enum_type.impl.result_processor(dialect, enum_type)(value),
-                dialect
+                enum_type.impl.result_processor(dialect, enum_type)(value), dialect
             )
+
     else:
+
         def value_processor(enum_value):
             return enum_value
+
     return tuple(value_processor(value) for value in enum_type.enums)
 
 
@@ -34,17 +40,18 @@ def column_type_is_enum(column_type: Any) -> bool:
         return column_type.native_enum
 
     # For specific case when types.TypeDecorator is used
-    if isinstance(getattr(column_type, 'impl', None), sqlalchemy.Enum):
+    if isinstance(getattr(column_type, "impl", None), sqlalchemy.Enum):
         return True
 
     return False
 
 
-def get_declared_enums(metadata: Union[MetaData, List[MetaData]],
-                       schema: str,
-                       default_schema: str,
-                       connection: 'Connection',
-                       ) -> DeclaredEnumValues:
+def get_declared_enums(
+    metadata: Union[MetaData, List[MetaData]],
+    schema: str,
+    default_schema: str,
+    connection: "Connection",
+) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
     with columns where enums are used.
@@ -67,7 +74,9 @@ def get_declared_enums(metadata: Union[MetaData, List[MetaData]],
         }
     """
     enum_name_to_values = dict()
-    enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(set)
+    enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(
+        set
+    )
 
     if isinstance(metadata, list):
         metadata_list = metadata
@@ -95,14 +104,19 @@ def get_declared_enums(metadata: Union[MetaData, List[MetaData]],
                 if column_type.name not in enum_name_to_values:
                     enum_name_to_values[column_type.name] = get_enum_values(column_type)
 
-                column_default = get_column_default(connection, schema, table.name, column.name)
+                column_default = get_column_default(
+                    connection, schema, table.name, column.name
+                )
                 enum_name_to_table_references[column_type.name].add(
-                    TableReference(table.name, column.name, column_type_wrapper, column_default)
+                    TableReference(
+                        table.name, column.name, column_type_wrapper, column_default
+                    )
                 )
 
     return DeclaredEnumValues(
         enum_values=enum_name_to_values,
-        enum_table_references={enum_name: frozenset(table_references)
-                               for enum_name, table_references
-                               in enum_name_to_table_references.items()},
+        enum_table_references={
+            enum_name: frozenset(table_references)
+            for enum_name, table_references in enum_name_to_table_references.items()
+        },
     )

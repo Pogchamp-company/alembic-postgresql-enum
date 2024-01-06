@@ -8,15 +8,15 @@ if TYPE_CHECKING:
 
 
 def _remove_schema_prefix(enum_name: str, schema: str) -> str:
-    schema_prefix = f'{schema}.'
+    schema_prefix = f"{schema}."
 
     if enum_name.startswith(schema_prefix):
-        enum_name = enum_name[len(schema_prefix):]
+        enum_name = enum_name[len(schema_prefix) :]
 
     return enum_name
 
 
-def get_defined_enums(connection: 'Connection', schema: str) -> EnumNamesToValues:
+def get_defined_enums(connection: "Connection", schema: str) -> EnumNamesToValues:
     """
     Return a dict mapping PostgreSQL defined enumeration types to the set of their
     defined values.
