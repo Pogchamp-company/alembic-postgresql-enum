@@ -35,7 +35,7 @@ class TableWithExplicitEnumSchema(Base):
     )
 
 
-def test_run_in_different_schema(connection: 'Connection'):
+def test_run_in_different_schema(connection: "Connection"):
     """https://github.com/Pogchamp-company/alembic-postgresql-enum/issues/34"""
     old_enum_variants = list(map(lambda item: item.name, _TestStatus))
 
@@ -43,16 +43,18 @@ def test_run_in_different_schema(connection: 'Connection'):
     database_schema.create_all(connection)
 
     new_enum_variants = old_enum_variants.copy()
-    new_enum_variants.append('WAITING_FOR_APPROVAL')
+    new_enum_variants.append("WAITING_FOR_APPROVAL")
 
     mc = MigrationContext.configure(connection)
     ops = Operations(mc)
 
-    ops.sync_enum_values(Base.metadata.schema, 'test_status', new_enum_variants,
-                         [(TableWithExplicitEnumSchema.__tablename__, 'status')])
+    ops.sync_enum_values(
+        Base.metadata.schema,
+        "test_status",
+        new_enum_variants,
+        [(TableWithExplicitEnumSchema.__tablename__, "status")],
+    )
 
     defined = get_defined_enums(connection, Base.metadata.schema)
 
-    assert defined == {
-        'test_status': tuple(new_enum_variants)
-    }
+    assert defined == {"test_status": tuple(new_enum_variants)}

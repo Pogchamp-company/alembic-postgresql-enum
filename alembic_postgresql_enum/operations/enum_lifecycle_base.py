@@ -5,11 +5,12 @@ import alembic
 
 
 class EnumLifecycleOp(alembic.operations.ops.MigrateOperation, ABC):
-    def __init__(self,
-                 schema: str,
-                 name: str,
-                 enum_values: Iterable[str],
-                 ):
+    def __init__(
+        self,
+        schema: str,
+        name: str,
+        enum_values: Iterable[str],
+    ):
         self.schema = schema
         self.name = name
         self.enum_values = enum_values

@@ -10,7 +10,7 @@ class ColumnType(PyEnum):
     ARRAY = ARRAY
 
     def __repr__(self):
-        return f'{self.__class__.__name__}.{self.name}'
+        return f"{self.__class__.__name__}.{self.name}"
 
 
 @dataclass(frozen=True)
@@ -21,15 +21,15 @@ class TableReference:
     existing_server_default: str = None
 
     def __repr__(self):
-        result_str = 'TableReference('
-        result_str += f'{self.table_name!r}, '
-        result_str += f'{self.column_name!r}, '
+        result_str = "TableReference("
+        result_str += f"{self.table_name!r}, "
+        result_str += f"{self.column_name!r}, "
         if self.column_type != ColumnType.COMMON:
-            result_str += f'column_type=ColumnType.{self.column_type.name}, '
+            result_str += f"column_type=ColumnType.{self.column_type.name}, "
         if self.existing_server_default is not None:
-            result_str += f'existing_server_default={self.existing_server_default!r}, '
+            result_str += f"existing_server_default={self.existing_server_default!r}, "
         result_str = result_str[:-2]  # to remove last comma with space
-        result_str += ')'
+        result_str += ")"
         return result_str
 
     @property
