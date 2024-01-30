@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
 def cast_old_array_enum_type_to_new(
     connection: "Connection",
-    schema: str,
     table_reference: TableReference,
     enum_type_name: str,
     enum_values_to_rename: List[Tuple[str, str]],
@@ -22,7 +21,8 @@ def cast_old_array_enum_type_to_new(
 
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name}[]
+            f"""ALTER TABLE {table_reference.table_schema}.{table_reference.table_name} 
+            ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name}[]
             USING {cast_clause}::{enum_type_name}[]
             """
         )
@@ -31,25 +31,19 @@ def cast_old_array_enum_type_to_new(
 
 def cast_old_enum_type_to_new(
     connection: "Connection",
-    schema: str,
     table_reference: TableReference,
     enum_type_name: str,
     enum_values_to_rename: List[Tuple[str, str]],
 ):
     if table_reference.column_type == ColumnType.ARRAY:
-        cast_old_array_enum_type_to_new(
-            connection,
-            schema,
-            table_reference,
-            enum_type_name,
-            enum_values_to_rename,
-        )
+        cast_old_array_enum_type_to_new(connection, table_reference, enum_type_name, enum_values_to_rename)
         return
 
     if enum_values_to_rename:
         connection.execute(
             sqlalchemy.text(
-                f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
+                f"""ALTER TABLE {table_reference.table_schema}.{table_reference.table_name} 
+                ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
                 USING CASE 
                 {' '.join(
                 f"WHEN {table_reference.column_name}::text = '{old_value}' THEN '{new_value}'::{enum_type_name}"
@@ -63,7 +57,8 @@ def cast_old_enum_type_to_new(
     else:
         connection.execute(
             sqlalchemy.text(
-                f"""ALTER TABLE {schema}.{table_reference.table_name} ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
+                f"""ALTER TABLE {table_reference.table_schema}.{table_reference.table_name} 
+                ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
                 USING {table_reference.column_name}::text::{enum_type_name}
                 """
             )

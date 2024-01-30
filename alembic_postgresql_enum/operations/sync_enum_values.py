@@ -87,13 +87,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 )
 
             try:
-                cast_old_enum_type_to_new(
-                    connection,
-                    schema,
-                    table_reference,
-                    enum_type_name,
-                    enum_values_to_rename,
-                )
+                cast_old_enum_type_to_new(connection, table_reference, enum_type_name, enum_values_to_rename)
             except DataError as error:
                 raise ValueError(
                     f"""New enum values can not be set due to some row containing reference to old enum value.
