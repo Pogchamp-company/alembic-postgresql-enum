@@ -3,6 +3,7 @@ Alembic extension to generate ALTER TYPE ... ADD VALUE statements to update
 SQLAlchemy enums.
 
 """
+
 import logging
 
 from alembic.operations.ops import UpgradeOps
