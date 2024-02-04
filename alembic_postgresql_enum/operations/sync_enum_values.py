@@ -6,6 +6,7 @@ import alembic.operations.ops
 from alembic.autogenerate.api import AutogenContext
 from sqlalchemy.exc import DataError
 
+from alembic_postgresql_enum.get_enum_data.types import Unspecified
 from alembic_postgresql_enum.sql_commands.column_default import (
     get_column_default,
     drop_default,
@@ -64,27 +65,25 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
     def _set_enum_values(
         cls,
         connection: "Connection",
-        schema: str,
+        enum_schema: str,
         enum_name: str,
         new_values: List[str],
         affected_columns: List[TableReference],
         enum_values_to_rename: List[Tuple[str, str]],
     ):
-        enum_type_name = f"{schema}.{enum_name}"
+        enum_type_name = f"{enum_schema}.{enum_name}"
         temporary_enum_name = f"{enum_name}_old"
 
-        rename_type(connection, schema, enum_name, temporary_enum_name)
-        create_type(connection, schema, enum_name, new_values)
+        rename_type(connection, enum_schema, enum_name, temporary_enum_name)
+        create_type(connection, enum_schema, enum_name, new_values)
 
-        create_comparison_operators(connection, schema, enum_name, temporary_enum_name, enum_values_to_rename)
+        create_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name, enum_values_to_rename)
 
         for table_reference in affected_columns:
             column_default = table_reference.existing_server_default
 
             if column_default is not None:
-                drop_default(
-                    connection, table_reference.table_schema, table_reference.table_name, table_reference.column_name
-                )
+                drop_default(connection, table_reference.table_name_with_schema, table_reference.column_name)
 
             try:
                 cast_old_enum_type_to_new(connection, table_reference, enum_type_name, enum_values_to_rename)
@@ -96,18 +95,16 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 ) from error
 
             if column_default is not None:
-                column_default = rename_default_if_required(schema, column_default, enum_name, enum_values_to_rename)
-
-                set_default(
-                    connection,
-                    table_reference.table_schema,
-                    table_reference.table_name,
-                    table_reference.column_name,
-                    column_default,
+                column_default = rename_default_if_required(
+                    enum_schema, column_default, enum_name, enum_values_to_rename
                 )
 
-        drop_comparison_operators(connection, schema, enum_name, temporary_enum_name)
-        drop_type(connection, schema, temporary_enum_name)
+                set_default(
+                    connection, table_reference.table_name_with_schema, table_reference.column_name, column_default
+                )
+
+        drop_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name)
+        drop_type(connection, enum_schema, temporary_enum_name)
 
     @classmethod
     def sync_enum_values(
@@ -165,17 +162,20 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                     )
 
                 elif isinstance(affected_column, TableReference):
+                    if affected_column.table_schema is Unspecified:
+                        affected_column = TableReference(
+                            table_name=affected_column.table_name,
+                            column_name=affected_column.column_name,
+                            table_schema=enum_schema,  # For backwards compatibility
+                            column_type=affected_column.column_type,
+                            existing_server_default=affected_column.existing_server_default,
+                        )
                     table_references.append(affected_column)
                 else:
                     raise ValueError("Affected columns must contain tuples or TableReferences")
 
             cls._set_enum_values(
-                connection,
-                enum_schema,
-                enum_name,
-                new_values,
-                table_references,
-                enum_values_to_rename,
+                connection, enum_schema, enum_name, new_values, table_references, enum_values_to_rename
             )
 
     def to_diff_tuple(self) -> Tuple[Any, ...]:

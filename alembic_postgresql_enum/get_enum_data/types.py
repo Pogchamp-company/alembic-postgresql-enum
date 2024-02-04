@@ -13,11 +13,14 @@ class ColumnType(PyEnum):
         return f"{self.__class__.__name__}.{self.name}"
 
 
+Unspecified = object()
+
+
 @dataclass(frozen=True)
 class TableReference:
     table_name: str
     column_name: str
-    table_schema: str = None
+    table_schema: str | None = Unspecified  # 'Unspecified' default is for migrations from older versions
     column_type: ColumnType = ColumnType.COMMON
     existing_server_default: str = None
 
@@ -38,6 +41,14 @@ class TableReference:
     @property
     def is_column_type_import_needed(self):
         return self.column_type != ColumnType.COMMON
+
+    @property
+    def table_name_with_schema(self):
+        if self.table_schema:
+            prefix = f"{self.table_schema}."
+        else:
+            prefix = ""
+        return f"{prefix}{self.table_name}"
 
 
 EnumNamesToValues = Dict[str, Tuple[str, ...]]

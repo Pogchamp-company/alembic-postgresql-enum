@@ -25,10 +25,10 @@ def get_column_default(
     return default_value
 
 
-def drop_default(connection: "Connection", table_schema: str, table_name: str, column_name: str):
+def drop_default(connection: "Connection", table_name_with_schema: str, column_name: str):
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {table_schema}.{table_name}
+            f"""ALTER TABLE {table_name_with_schema}
              ALTER COLUMN {column_name} DROP DEFAULT"""
         )
     )
@@ -36,14 +36,13 @@ def drop_default(connection: "Connection", table_schema: str, table_name: str, c
 
 def set_default(
     connection: "Connection",
-    table_schema: str,
-    table_name: str,
+    table_name_with_schema: str,
     column_name: str,
     default_value: str,
 ):
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {table_schema}.{table_name} 
+            f"""ALTER TABLE {table_name_with_schema}
             ALTER COLUMN {column_name} SET DEFAULT {default_value}"""
         )
     )

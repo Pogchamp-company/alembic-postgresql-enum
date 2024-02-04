@@ -21,7 +21,7 @@ def cast_old_array_enum_type_to_new(
 
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {table_reference.table_schema}.{table_reference.table_name} 
+            f"""ALTER TABLE {table_reference.table_name_with_schema} 
             ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name}[]
             USING {cast_clause}::{enum_type_name}[]
             """
@@ -42,7 +42,7 @@ def cast_old_enum_type_to_new(
     if enum_values_to_rename:
         connection.execute(
             sqlalchemy.text(
-                f"""ALTER TABLE {table_reference.table_schema}.{table_reference.table_name} 
+                f"""ALTER TABLE {table_reference.table_name_with_schema} 
                 ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
                 USING CASE 
                 {' '.join(
@@ -57,7 +57,7 @@ def cast_old_enum_type_to_new(
     else:
         connection.execute(
             sqlalchemy.text(
-                f"""ALTER TABLE {table_reference.table_schema}.{table_reference.table_name} 
+                f"""ALTER TABLE {table_reference.table_name_with_schema} 
                 ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
                 USING {table_reference.column_name}::text::{enum_type_name}
                 """
