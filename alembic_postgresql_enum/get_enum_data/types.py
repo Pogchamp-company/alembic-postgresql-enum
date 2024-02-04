@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum as PyEnum
-from typing import Union, Tuple, Dict, FrozenSet
+from typing import Tuple, Dict, FrozenSet, Optional
 
 from sqlalchemy import Enum, ARRAY
 
@@ -20,7 +20,7 @@ Unspecified = object()
 class TableReference:
     table_name: str
     column_name: str
-    table_schema: str | None = Unspecified  # 'Unspecified' default is for migrations from older versions
+    table_schema: Optional[str] = Unspecified  # 'Unspecified' default is for migrations from older versions
     column_type: ColumnType = ColumnType.COMMON
     existing_server_default: str = None
 
