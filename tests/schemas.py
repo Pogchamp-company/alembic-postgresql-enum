@@ -99,13 +99,24 @@ def get_declared_enum_values_with_orders_and_users() -> DeclaredEnumValues:
         enum_table_references={
             "user_status_enum": frozenset(
                 (
-                    TableReference("users", "user_status"),
-                    TableReference("users", "last_user_status"),
-                    TableReference("orders", "user_status"),
+                    TableReference(table_schema=DEFAULT_SCHEMA, table_name="users", column_name="user_status"),
+                    TableReference(table_schema=DEFAULT_SCHEMA, table_name="users", column_name="last_user_status"),
+                    TableReference(table_schema=DEFAULT_SCHEMA, table_name="orders", column_name="user_status"),
                 )
             ),
-            "order_status_enum": frozenset((TableReference("orders", "order_status"),)),
-            "car_color_enum": frozenset((TableReference("cars", "colors", ColumnType.ARRAY),)),
+            "order_status_enum": frozenset(
+                (TableReference(table_schema=DEFAULT_SCHEMA, table_name="orders", column_name="order_status"),)
+            ),
+            "car_color_enum": frozenset(
+                (
+                    TableReference(
+                        table_schema=DEFAULT_SCHEMA,
+                        table_name="cars",
+                        column_name="colors",
+                        column_type=ColumnType.ARRAY,
+                    ),
+                )
+            ),
         },
     )
 

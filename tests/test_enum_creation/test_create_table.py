@@ -118,7 +118,7 @@ def test_create_enum_on_create_table_with_sa_enum(connection: "Connection"):
 
 
 def test_create_enum_on_create_table_with_another_schema(connection: "Connection"):
-    """Check that library correctly creates enum before its use inside create_table inside another schema"""
+    """Check that library correctly creates enum before its use inside create_table inside another table_schema"""
     new_enum_variants = ["active", "passive"]
 
     target_schema = MetaData()

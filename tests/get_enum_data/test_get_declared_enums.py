@@ -23,7 +23,13 @@ def test_with_user_schema(connection: "Connection"):
 
     assert function_result.enum_values == {USER_STATUS_ENUM_NAME: tuple(enum_variants)}
     assert function_result.enum_table_references == {
-        USER_STATUS_ENUM_NAME: frozenset((TableReference(USER_TABLE_NAME, USER_STATUS_COLUMN_NAME),))
+        USER_STATUS_ENUM_NAME: frozenset(
+            (
+                TableReference(
+                    table_schema=DEFAULT_SCHEMA, table_name=USER_TABLE_NAME, column_name=USER_STATUS_COLUMN_NAME
+                ),
+            )
+        )
     }
 
 
