@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING
 from alembic.operations import Operations
 from alembic.runtime.migration import MigrationContext
 
+from alembic_postgresql_enum import TableReference
 from alembic_postgresql_enum.get_enum_data import get_defined_enums
+from tests.schemas import DEFAULT_SCHEMA
 from tests.schemas import ANOTHER_SCHEMA_NAME
 
 if TYPE_CHECKING:
@@ -30,12 +32,12 @@ class TableWithExplicitEnumSchema(Base):
     id = Column(Integer, primary_key=True)
 
     status = Column(
-        ENUM(_TestStatus, name="test_status", schema=Base.metadata.schema),
+        ENUM(_TestStatus, name="test_status"),
         nullable=False,
     )
 
 
-def test_run_in_different_schema(connection: 'Connection'):
+def test_run_in_different_schema(connection: "Connection"):
     """https://github.com/Pogchamp-company/alembic-postgresql-enum/issues/34"""
     old_enum_variants = list(map(lambda item: item.name, _TestStatus))
 
@@ -43,16 +45,24 @@ def test_run_in_different_schema(connection: 'Connection'):
     database_schema.create_all(connection)
 
     new_enum_variants = old_enum_variants.copy()
-    new_enum_variants.append('WAITING_FOR_APPROVAL')
+    new_enum_variants.append("WAITING_FOR_APPROVAL")
 
     mc = MigrationContext.configure(connection)
     ops = Operations(mc)
 
-    ops.sync_enum_values(Base.metadata.schema, 'test_status', new_enum_variants,
-                         [(TableWithExplicitEnumSchema.__tablename__, 'status')])
+    ops.sync_enum_values(
+        DEFAULT_SCHEMA,
+        "test_status",
+        new_enum_variants,
+        [
+            TableReference(
+                table_name=TableWithExplicitEnumSchema.__tablename__,
+                column_name="status",
+                table_schema=Base.metadata.schema,
+            )
+        ],
+    )
 
-    defined = get_defined_enums(connection, Base.metadata.schema)
+    defined = get_defined_enums(connection, DEFAULT_SCHEMA)
 
-    assert defined == {
-        'test_status': tuple(new_enum_variants)
-    }
+    assert defined == {"test_status": tuple(new_enum_variants)}

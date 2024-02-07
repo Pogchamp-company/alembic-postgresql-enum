@@ -14,17 +14,15 @@ class PostgresUsingAlterColumnOp(AlterColumnOp):
 
     def reverse(self):
         reversed_object = super().reverse()
-        reversed_object.kw.pop('postgresql_using', None)
+        reversed_object.kw.pop("postgresql_using", None)
         return reversed_object
 
 
 @renderers.dispatch_for(PostgresUsingAlterColumnOp)
-def _postgres_using_alter_column(
-        autogen_context: AutogenContext, op: ops.AlterColumnOp
-) -> str:
+def _postgres_using_alter_column(autogen_context: AutogenContext, op: ops.AlterColumnOp) -> str:
     alter_column_expression = render._alter_column(autogen_context, op)
 
-    postgresql_using = op.kw.get('postgresql_using', None)
+    postgresql_using = op.kw.get("postgresql_using", None)
     indent = " " * 11
 
     # To remove closing bracket
@@ -37,11 +35,11 @@ def _postgres_using_alter_column(
     return alter_column_expression
 
 
-log = logging.getLogger(f'alembic.{__name__}')
+log = logging.getLogger(f"alembic.{__name__}")
 
 
 def add_postgres_using_to_alter_operation(op: AlterColumnOp):
-    op.kw['postgresql_using'] = f'{op.column_name}::{op.modify_type.name}'
+    op.kw["postgresql_using"] = f"{op.column_name}::{op.modify_type.name}"
     log.info("postgresql_using added to %r.%r alteration", op.table_name, op.column_name)
     op.__class__ = PostgresUsingAlterColumnOp
 

@@ -1,7 +1,14 @@
 import logging
 
 import sqlalchemy
-from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp, DropColumnOp, DropTableOp
+from alembic.operations.ops import (
+    UpgradeOps,
+    ModifyTableOps,
+    AddColumnOp,
+    CreateTableOp,
+    DropColumnOp,
+    DropTableOp,
+)
 from sqlalchemy import Column
 from sqlalchemy.dialects import postgresql
 
@@ -10,13 +17,12 @@ class ReprWorkaround(postgresql.ENUM):
     """
     As postgresql.ENUM does not include create_type inside __repr__, we have to swap it with custom type
     """
-    __module__ = 'sqlalchemy.dialects.postgresql'
+
+    __module__ = "sqlalchemy.dialects.postgresql"
 
     def __repr__(self):
-        return (
-            f'{super().__repr__()[:-1]}, create_type=False)'
-            .replace('ReprWorkaround', 'ENUM')
-            .replace(', metadata=MetaData()', '')
+        return f"{super().__repr__()[:-1]}, create_type=False)".replace("ReprWorkaround", "ENUM").replace(
+            ", metadata=MetaData()", ""
         )
 
 
@@ -26,7 +32,7 @@ def inject_repr_into_enums(column: Column):
         if not column.type.native_enum:
             return
         log.info("%r converted into postgresql.ENUM", column.type)
-        column.type = eval(repr(column.type).replace('Enum', 'postgresql.ENUM'))
+        column.type = eval(repr(column.type).replace("Enum", "postgresql.ENUM"))
     if isinstance(column.type, postgresql.ENUM):
         if column.type.create_type:
             log.info("create_type=False injected into %r", column.type.name)
@@ -36,7 +42,7 @@ def inject_repr_into_enums(column: Column):
         column.type = replacement_enum_type
 
 
-log = logging.getLogger(f'alembic.{__name__}')
+log = logging.getLogger(f"alembic.{__name__}")
 
 
 def add_create_type_false(upgrade_ops: UpgradeOps):
