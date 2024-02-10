@@ -26,23 +26,34 @@ class ReprWorkaround(postgresql.ENUM):
         )
 
 
-def inject_repr_into_enums(column: Column):
-    """Swap postgresql.ENUM class to ReprWorkaround for the column type"""
-    if column.type.__class__ == sqlalchemy.Enum:
-        if not column.type.native_enum:
-            return
-        log.info("%r converted into postgresql.ENUM", column.type)
-        column.type = eval(repr(column.type).replace("Enum", "postgresql.ENUM"))
-    if isinstance(column.type, postgresql.ENUM):
-        if column.type.create_type:
-            log.info("create_type=False injected into %r", column.type.name)
-        replacement_enum_type = column.type
+log = logging.getLogger(f"alembic.{__name__}")
+
+
+def get_replacement_type(column_type):
+    replacement_enum_type = column_type
+
+    if replacement_enum_type.__class__ == sqlalchemy.Enum:
+        if not replacement_enum_type.native_enum:
+            return replacement_enum_type
+
+        log.info("%r converted into postgresql.ENUM", replacement_enum_type)
+        replacement_enum_type = eval(repr(replacement_enum_type).replace("Enum", "postgresql.ENUM"))
+
+    if isinstance(replacement_enum_type, postgresql.ENUM):
+        if replacement_enum_type.create_type:
+            log.info("create_type=False injected into %r", replacement_enum_type)
+
         replacement_enum_type.__class__ = ReprWorkaround
 
-        column.type = replacement_enum_type
+    return replacement_enum_type
 
 
-log = logging.getLogger(f"alembic.{__name__}")
+def inject_repr_into_enums(column: Column):
+    """Swap postgresql.ENUM class to ReprWorkaround for the column type"""
+    if isinstance(column.type, sqlalchemy.ARRAY):
+        column.type.item_type = get_replacement_type(column.type.item_type)
+    else:
+        column.type = get_replacement_type(column.type)
 
 
 def add_create_type_false(upgrade_ops: UpgradeOps):
