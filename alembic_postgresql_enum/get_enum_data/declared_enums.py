@@ -101,7 +101,7 @@ def get_declared_enums(
                     enum_name_to_values[column_type.name] = get_enum_values(column_type)
 
                 table_schema = table.schema or default_schema
-                column_default = get_column_default(connection, table.schema, table.name, column.name)
+                column_default = get_column_default(connection, table_schema, table.name, column.name)
                 enum_name_to_table_references[column_type.name].add(
                     TableReference(
                         table_schema=table_schema,
