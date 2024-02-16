@@ -7,7 +7,7 @@ from alembic.operations import Operations
 from sqlalchemy import MetaData
 from sqlalchemy.dialects import postgresql
 
-from alembic_postgresql_enum import ColumnType
+from alembic_postgresql_enum import ColumnType, TableReference
 from tests.utils.migration_context import create_migration_context
 
 if TYPE_CHECKING:
@@ -46,6 +46,7 @@ def compare_and_run(
             "sa": sqlalchemy,
             "postgresql": postgresql,
             "ColumnType": ColumnType,
+            "TableReference": TableReference,
         },
     )
     exec(
@@ -55,5 +56,6 @@ def compare_and_run(
             "sa": sqlalchemy,
             "postgresql": postgresql,
             "ColumnType": ColumnType,
+            "TableReference": TableReference,
         },
     )
