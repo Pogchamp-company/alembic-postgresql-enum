@@ -10,22 +10,30 @@ from sqlalchemy import MetaData
 
 class CompareAndRunTestCase(ABC):
     @abstractmethod
-    def get_database_schema(self) -> MetaData: ...
+    def get_database_schema(self) -> MetaData:
+        ...
 
     @abstractmethod
-    def get_target_schema(self) -> MetaData: ...
+    def get_target_schema(self) -> MetaData:
+        ...
+
+    def insert_migration_data(self, connection: "Connection"):
+        pass
 
     @abstractmethod
-    def get_expected_upgrade(self) -> str: ...
+    def get_expected_upgrade(self) -> str:
+        ...
 
     @abstractmethod
-    def get_expected_downgrade(self) -> str: ...
+    def get_expected_downgrade(self) -> str:
+        ...
 
     def test_run(self, connection: "Connection"):
         database_schema = self.get_database_schema()
         target_schema = self.get_target_schema()
 
         database_schema.create_all(connection)
+        self.insert_migration_data(connection)
 
         compare_and_run(
             connection,
