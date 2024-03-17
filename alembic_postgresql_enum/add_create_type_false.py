@@ -62,14 +62,10 @@ def add_create_type_false(upgrade_ops: UpgradeOps):
         if isinstance(operations_group, ModifyTableOps):
             for operation in operations_group.ops:
                 if isinstance(operation, AddColumnOp):
-                    column: Column = operation.column
-
-                    inject_repr_into_enums(column)
-
+                    inject_repr_into_enums(operation.column)
                 elif isinstance(operation, DropColumnOp):
-                    column: Column = operation._reverse.column
-
-                    inject_repr_into_enums(column)
+                    assert operation._reverse is not None
+                    inject_repr_into_enums(operation._reverse.column)
 
         elif isinstance(operations_group, CreateTableOp):
             for column in operations_group.columns:
@@ -77,6 +73,7 @@ def add_create_type_false(upgrade_ops: UpgradeOps):
                     inject_repr_into_enums(column)
 
         elif isinstance(operations_group, DropTableOp):
+            assert operations_group._reverse is not None
             for column in operations_group._reverse.columns:
                 if isinstance(column, Column):
                     inject_repr_into_enums(column)

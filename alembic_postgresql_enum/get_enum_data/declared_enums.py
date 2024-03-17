@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING
+from enum import Enum
+from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast
 
 import sqlalchemy
 from sqlalchemy import MetaData
@@ -93,16 +94,16 @@ def get_declared_enums(
                 if not column_type_is_enum(column_type):
                     continue
 
-                column_type_schema = column_type.schema or default_schema
+                column_type_schema = column_type.schema or default_schema  # type: ignore[attr-defined]
                 if column_type_schema != schema:
                     continue
 
-                if column_type.name not in enum_name_to_values:
-                    enum_name_to_values[column_type.name] = get_enum_values(column_type)
+                if column_type.name not in enum_name_to_values:  # type: ignore[attr-defined]
+                    enum_name_to_values[column_type.name] = get_enum_values(cast(sqlalchemy.Enum, column_type))  # type: ignore[attr-defined]
 
                 table_schema = table.schema or default_schema
                 column_default = get_column_default(connection, table_schema, table.name, column.name)
-                enum_name_to_table_references[column_type.name].add(
+                enum_name_to_table_references[column_type.name].add(  # type: ignore[attr-defined]
                     TableReference(
                         table_schema=table_schema,
                         table_name=table.name,
