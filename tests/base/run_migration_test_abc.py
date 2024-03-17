@@ -17,7 +17,7 @@ class CompareAndRunTestCase(ABC):
     def get_target_schema(self) -> MetaData:
         ...
 
-    def insert_migration_data(self, connection: "Connection"):
+    def insert_migration_data(self, connection: "Connection", database_schema: MetaData) -> None:
         pass
 
     @abstractmethod
@@ -33,7 +33,7 @@ class CompareAndRunTestCase(ABC):
         target_schema = self.get_target_schema()
 
         database_schema.create_all(connection)
-        self.insert_migration_data(connection)
+        self.insert_migration_data(connection, database_schema)
 
         compare_and_run(
             connection,

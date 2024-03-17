@@ -19,7 +19,7 @@ class NewEnum(Enum):
 class TestTextColumn(CompareAndRunTestCase):
     def get_database_schema(self) -> MetaData:
         database_schema = MetaData()
-        self.a_table = Table("a", database_schema, Column("value", TEXT))
+        Table("a", database_schema, Column("value", TEXT))
         return database_schema
 
     def get_target_schema(self) -> MetaData:
@@ -27,9 +27,10 @@ class TestTextColumn(CompareAndRunTestCase):
         Table("a", target_schema, Column("value", postgresql.ENUM(NewEnum)))
         return target_schema
 
-    def insert_migration_data(self, connection: "Connection"):
+    def insert_migration_data(self, connection: "Connection", database_schema: MetaData) -> None:
+        a_table = database_schema.tables["a"]
         connection.execute(
-            insert(self.a_table).values(
+            insert(a_table).values(
                 [
                     {"value": NewEnum.A.name},
                     {"value": NewEnum.B.name},
