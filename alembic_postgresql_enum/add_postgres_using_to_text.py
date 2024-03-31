@@ -39,6 +39,7 @@ log = logging.getLogger(f"alembic.{__name__}")
 
 
 def add_postgres_using_to_alter_operation(op: AlterColumnOp):
+    assert op.modify_type is not None
     op.kw["postgresql_using"] = f"{op.column_name}::{op.modify_type.name}"
     log.info("postgresql_using added to %r.%r alteration", op.table_name, op.column_name)
     op.__class__ = PostgresUsingAlterColumnOp

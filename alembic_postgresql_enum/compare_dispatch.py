@@ -39,6 +39,12 @@ def compare_enums(
         if isinstance(operations_group, CreateTableOp) and operations_group.schema not in schema_names:
             schema_names.append(operations_group.schema)
 
+    assert (
+        autogen_context.dialect is not None
+        and autogen_context.dialect.default_schema_name is not None
+        and autogen_context.connection is not None
+        and autogen_context.metadata is not None
+    )
     for schema in schema_names:
         default_schema = autogen_context.dialect.default_schema_name
         if schema is None:
