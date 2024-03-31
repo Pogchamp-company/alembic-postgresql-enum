@@ -20,6 +20,7 @@ def compare_and_run(
     *,
     expected_upgrade: str,
     expected_downgrade: str,
+    disable_running: bool = False,
 ):
     """Compares generated migration script is equal to expected_upgrade and expected_downgrade, then runs it"""
     migration_context = create_migration_context(connection, target_schema)
@@ -38,6 +39,9 @@ def compare_and_run(
 
     assert upgrade_code == expected_upgrade, f"Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}"
     assert downgrade_code == expected_downgrade, f"Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}"
+
+    if disable_running:
+        return
 
     exec(
         upgrade_code,
