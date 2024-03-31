@@ -1,3 +1,4 @@
+import logging
 from typing import Iterable, Union
 
 import alembic
@@ -16,6 +17,9 @@ from alembic_postgresql_enum.detection_of_changes import (
 from alembic_postgresql_enum.get_enum_data import get_defined_enums, get_declared_enums
 
 
+log = logging.getLogger(f"alembic.{__name__}")
+
+
 @alembic.autogenerate.comparators.dispatch_for("schema")
 def compare_enums(
     autogen_context: AutogenContext,
@@ -28,6 +32,12 @@ def compare_enums(
     for each defined enum that has changed new entries when compared to its
     declared version.
     """
+    if autogen_context.dialect.name != "postgresql":
+        log.warning(
+            f"This library only supports postgresql, but you are using {autogen_context.dialect.name}, skipping"
+        )
+        return
+
     add_create_type_false(upgrade_ops)
     add_postgres_using_to_text(upgrade_ops)
 
