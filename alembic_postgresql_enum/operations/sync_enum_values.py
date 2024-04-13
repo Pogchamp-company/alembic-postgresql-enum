@@ -1,3 +1,4 @@
+import logging
 from typing import List, Tuple, Any, Iterable, TYPE_CHECKING
 
 import alembic.autogenerate
@@ -29,6 +30,9 @@ if TYPE_CHECKING:
 
 from alembic_postgresql_enum.connection import get_connection
 from alembic_postgresql_enum.get_enum_data import TableReference, ColumnType
+
+
+log = logging.getLogger(f"alembic.{__name__}")
 
 
 @alembic.operations.base.Operations.register_operation("sync_enum_values")
@@ -138,6 +142,12 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             ]
             If there was server default with old_name it will be renamed accordingly
         """
+        if operations.migration_context.dialect.name != "postgresql":
+            log.warning(
+                f"This library only supports postgresql, but you are using {operations.migration_context.dialect.name}, skipping"
+            )
+            return
+
         enum_values_to_rename = list(enum_values_to_rename)
 
         with get_connection(operations) as connection:

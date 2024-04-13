@@ -20,9 +20,9 @@ Unspecified = object()
 class TableReference:
     table_name: str
     column_name: str
-    table_schema: Optional[str] = Unspecified  # 'Unspecified' default is for migrations from older versions
+    table_schema: Optional[str] = Unspecified  # type: ignore[assignment] # 'Unspecified' default is for migrations from older versions
     column_type: ColumnType = ColumnType.COMMON
-    existing_server_default: str = None
+    existing_server_default: Optional[str] = None
 
     def __repr__(self):
         result_str = "TableReference("
@@ -48,7 +48,7 @@ class TableReference:
             prefix = f"{self.table_schema}."
         else:
             prefix = ""
-        return f"{prefix}{self.table_name}"
+        return f'{prefix}"{self.table_name}"'
 
 
 EnumNamesToValues = Dict[str, Tuple[str, ...]]
