@@ -48,7 +48,7 @@ class TableReference:
             prefix = f"{self.table_schema}."
         else:
             prefix = ""
-        return f"{prefix}{self.table_name}"
+        return f'{prefix}"{self.table_name}"'
 
 
 EnumNamesToValues = Dict[str, Tuple[str, ...]]
