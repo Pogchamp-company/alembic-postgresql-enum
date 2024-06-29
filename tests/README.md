@@ -25,3 +25,11 @@ Run tests
 ```
 pytest
 ```
+
+# In progress
+
+To run tests just use:
+```commandline
+docker compose build
+docker compose up
+```
