@@ -47,6 +47,9 @@ def sync_changed_enums(
             enum_name,
             list(old_values),
             list(new_values),
-            list(affected_columns),
+            sorted(
+                affected_columns,
+                key=lambda reference: (reference.table_schema, reference.table_name, reference.column_name),
+            ),
         )
         upgrade_ops.ops.append(op)
