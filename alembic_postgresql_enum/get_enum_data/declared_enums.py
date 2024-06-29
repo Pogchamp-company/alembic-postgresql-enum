@@ -117,8 +117,6 @@ def get_declared_enums(
 
     just_added_defaults = get_just_added_defaults(upgrade_ops, default_schema)
 
-    # assert just_added_defaults == {}, just_added_defaults
-
     if isinstance(metadata, list):
         metadata_list = metadata
     else:
