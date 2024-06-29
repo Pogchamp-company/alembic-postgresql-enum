@@ -1,9 +1,9 @@
 from collections import defaultdict
-from enum import Enum
-from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast
+from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast, Dict
 
 import sqlalchemy
-from sqlalchemy import MetaData
+from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp
+from sqlalchemy import MetaData, Column
 from sqlalchemy.dialects import postgresql
 
 from alembic_postgresql_enum.sql_commands.column_default import get_column_default
@@ -45,11 +45,49 @@ def column_type_is_enum(column_type: Any) -> bool:
     return False
 
 
+def get_just_added_defaults(
+    upgrade_ops: Union[UpgradeOps, None], default_schema: str
+) -> Dict[Tuple[str, str, str], str]:
+    """Get all server defaults that will be added in current migration"""
+    if upgrade_ops is None:
+        return {}
+
+    new_server_defaults = {}
+
+    for operations_group in upgrade_ops.ops:
+        if isinstance(operations_group, ModifyTableOps):
+            for operation in operations_group.ops:
+                if isinstance(operation, AddColumnOp):
+                    try:
+                        if operation.column.server_default is None:
+                            continue
+                        new_server_defaults[
+                            operation.schema or default_schema, operation.table_name, operation.column.name
+                        ] = operation.column.server_default.arg.text
+                    except AttributeError:
+                        pass
+
+        elif isinstance(operations_group, CreateTableOp):
+            for column in operations_group.columns:
+                if isinstance(column, Column):
+                    try:
+                        if column.server_default is None:
+                            continue
+                        new_server_defaults[column.table.schema or default_schema, column.table.name, column.name] = (
+                            column.server_default.arg.text
+                        )
+                    except AttributeError:
+                        pass
+
+    return new_server_defaults
+
+
 def get_declared_enums(
     metadata: Union[MetaData, List[MetaData]],
     schema: str,
     default_schema: str,
     connection: "Connection",
+    upgrade_ops: Union[UpgradeOps, None] = None,
 ) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
@@ -62,6 +100,8 @@ def get_declared_enums(
         Default schema name, likely will be "public"
     :param connection:
         Database connection
+    :param upgrade_ops:
+        Upgrade operations in current migration
     :returns DeclaredEnumValues:
         enum_values: {
             "my_enum": tuple(["a", "b", "c"]),
@@ -74,6 +114,10 @@ def get_declared_enums(
     """
     enum_name_to_values = dict()
     enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(set)
+
+    just_added_defaults = get_just_added_defaults(upgrade_ops, default_schema)
+
+    # assert just_added_defaults == {}, just_added_defaults
 
     if isinstance(metadata, list):
         metadata_list = metadata
@@ -103,6 +147,8 @@ def get_declared_enums(
 
                 table_schema = table.schema or default_schema
                 column_default = get_column_default(connection, table_schema, table.name, column.name)
+                if (table_schema, table.name, column.name) in just_added_defaults:
+                    column_default = just_added_defaults[table_schema, table.name, column.name]
                 enum_name_to_table_references[column_type.name].add(  # type: ignore[attr-defined]
                     TableReference(
                         table_schema=table_schema,
