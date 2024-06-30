@@ -47,7 +47,7 @@ def sync_changed_enums(
             enum_name,
             list(old_values),
             list(new_values),
-            sorted(
+            sorted(  # Sort references alphabetically for consistency of generated text
                 affected_columns,
                 key=lambda reference: (reference.table_schema, reference.table_name, reference.column_name),
             ),

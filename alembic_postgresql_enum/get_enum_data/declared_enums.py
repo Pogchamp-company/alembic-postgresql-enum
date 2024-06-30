@@ -1,11 +1,12 @@
 from collections import defaultdict
-from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast, Dict
+from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast, Optional
 
 import sqlalchemy
-from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp, AlterColumnOp
-from sqlalchemy import MetaData, Column
+from alembic.operations.ops import UpgradeOps
+from sqlalchemy import MetaData
 from sqlalchemy.dialects import postgresql
 
+from alembic_postgresql_enum.get_enum_data.get_default_from_alembic_ops import get_just_added_defaults
 from alembic_postgresql_enum.sql_commands.column_default import get_column_default
 
 if TYPE_CHECKING:
@@ -45,54 +46,12 @@ def column_type_is_enum(column_type: Any) -> bool:
     return False
 
 
-def get_just_added_defaults(
-    upgrade_ops: Union[UpgradeOps, None], default_schema: str
-) -> Dict[Tuple[str, str, str], str]:
-    """Get all server defaults that will be added in current migration"""
-    if upgrade_ops is None:
-        return {}
-
-    new_server_defaults = {}
-
-    for operations_group in upgrade_ops.ops:
-        if isinstance(operations_group, ModifyTableOps):
-            for operation in operations_group.ops:
-                if isinstance(operation, AddColumnOp):
-                    try:
-                        if operation.column.server_default is None:
-                            continue
-                        new_server_defaults[
-                            operation.schema or default_schema, operation.table_name, operation.column.name
-                        ] = operation.column.server_default.arg.text
-                    except AttributeError:
-                        pass
-                elif isinstance(operation, AlterColumnOp):
-                    if operation.modify_server_default is not False:
-                        new_server_defaults[
-                            operation.schema or default_schema, operation.table_name, operation.column_name
-                        ] = operation.modify_server_default
-
-        elif isinstance(operations_group, CreateTableOp):
-            for column in operations_group.columns:
-                if isinstance(column, Column):
-                    try:
-                        if column.server_default is None:
-                            continue
-                        new_server_defaults[column.table.schema or default_schema, column.table.name, column.name] = (
-                            column.server_default.arg.text
-                        )
-                    except AttributeError:
-                        pass
-
-    return new_server_defaults
-
-
 def get_declared_enums(
     metadata: Union[MetaData, List[MetaData]],
     schema: str,
     default_schema: str,
     connection: "Connection",
-    upgrade_ops: Union[UpgradeOps, None] = None,
+    upgrade_ops: Optional[UpgradeOps] = None,
 ) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
