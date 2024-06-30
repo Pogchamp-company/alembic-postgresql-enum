@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast, Dict
 
 import sqlalchemy
-from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp
+from alembic.operations.ops import UpgradeOps, ModifyTableOps, AddColumnOp, CreateTableOp, AlterColumnOp
 from sqlalchemy import MetaData, Column
 from sqlalchemy.dialects import postgresql
 
@@ -66,6 +66,11 @@ def get_just_added_defaults(
                         ] = operation.column.server_default.arg.text
                     except AttributeError:
                         pass
+                elif isinstance(operation, AlterColumnOp):
+                    if operation.modify_server_default is not False:
+                        new_server_defaults[
+                            operation.schema or default_schema, operation.table_name, operation.column_name
+                        ] = operation.modify_server_default
 
         elif isinstance(operations_group, CreateTableOp):
             for column in operations_group.columns:
