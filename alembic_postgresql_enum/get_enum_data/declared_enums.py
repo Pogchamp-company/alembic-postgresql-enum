@@ -1,11 +1,12 @@
 from collections import defaultdict
-from enum import Enum
-from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast
+from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast, Optional
 
 import sqlalchemy
+from alembic.operations.ops import UpgradeOps
 from sqlalchemy import MetaData
 from sqlalchemy.dialects import postgresql
 
+from alembic_postgresql_enum.get_enum_data.get_default_from_alembic_ops import get_just_added_defaults
 from alembic_postgresql_enum.sql_commands.column_default import get_column_default
 
 if TYPE_CHECKING:
@@ -50,6 +51,7 @@ def get_declared_enums(
     schema: str,
     default_schema: str,
     connection: "Connection",
+    upgrade_ops: Optional[UpgradeOps] = None,
 ) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
@@ -62,6 +64,8 @@ def get_declared_enums(
         Default schema name, likely will be "public"
     :param connection:
         Database connection
+    :param upgrade_ops:
+        Upgrade operations in current migration
     :returns DeclaredEnumValues:
         enum_values: {
             "my_enum": tuple(["a", "b", "c"]),
@@ -74,6 +78,8 @@ def get_declared_enums(
     """
     enum_name_to_values = dict()
     enum_name_to_table_references: defaultdict[str, Set[TableReference]] = defaultdict(set)
+
+    just_added_defaults = get_just_added_defaults(upgrade_ops, default_schema)
 
     if isinstance(metadata, list):
         metadata_list = metadata
@@ -103,6 +109,8 @@ def get_declared_enums(
 
                 table_schema = table.schema or default_schema
                 column_default = get_column_default(connection, table_schema, table.name, column.name)
+                if (table_schema, table.name, column.name) in just_added_defaults:
+                    column_default = just_added_defaults[table_schema, table.name, column.name]
                 enum_name_to_table_references[column_type.name].add(  # type: ignore[attr-defined]
                     TableReference(
                         table_schema=table_schema,

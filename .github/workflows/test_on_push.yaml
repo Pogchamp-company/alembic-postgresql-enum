@@ -10,7 +10,6 @@ on:
       - tests/**
       - alembic_postgresql_enum/**
       - .github/workflows/test_on_push.yaml
-  pull_request: { }
 
 jobs:
   run_tests:

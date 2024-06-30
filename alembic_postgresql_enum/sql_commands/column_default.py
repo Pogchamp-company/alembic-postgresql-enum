@@ -1,3 +1,4 @@
+import re
 from typing import TYPE_CHECKING, Union, List, Tuple
 
 import sqlalchemy
@@ -54,15 +55,38 @@ def rename_default_if_required(
     enum_name: str,
     enum_values_to_rename: List[Tuple[str, str]],
 ) -> str:
-    is_array = default_value.endswith("[]")
+    if schema:
+        new_enum = f"{schema}.{enum_name}"
+    else:
+        new_enum = enum_name
+
+    if default_value.startswith("ARRAY["):
+        column_default_value = _replace_strings_in_quotes(default_value, enum_values_to_rename)
+        column_default_value = re.sub(r"::[.\w]+", f"::{new_enum}", column_default_value)
+        return column_default_value
+
+    if default_value.endswith("[]"):
+
+        # remove old type postfix
+        column_default_value = default_value[: default_value.find("::")]
+
+        column_default_value = _replace_strings_in_quotes(column_default_value, enum_values_to_rename)
+
+        return f"{column_default_value}::{new_enum}[]"
+
     # remove old type postfix
     column_default_value = default_value[: default_value.find("::")]
 
-    for old_value, new_value in enum_values_to_rename:
-        column_default_value = column_default_value.replace(f"'{old_value}'", f"'{new_value}'")
-        column_default_value = column_default_value.replace(f'"{old_value}"', f'"{new_value}"')
+    column_default_value = _replace_strings_in_quotes(column_default_value, enum_values_to_rename)
 
-    suffix = "[]" if is_array else ""
-    if schema:
-        return f"{column_default_value}::{schema}.{enum_name}{suffix}"
-    return f"{column_default_value}::{enum_name}{suffix}"
+    return f"{column_default_value}::{new_enum}"
+
+
+def _replace_strings_in_quotes(
+    old_default: str,
+    enum_values_to_rename: List[Tuple[str, str]],
+) -> str:
+    for old_value, new_value in enum_values_to_rename:
+        old_default = old_default.replace(f"'{old_value}'", f"'{new_value}'")
+        old_default = old_default.replace(f'"{old_value}"', f'"{new_value}"')
+    return old_default
