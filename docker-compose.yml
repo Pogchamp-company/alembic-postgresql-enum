@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  run-tests:
+#    entrypoint: pytest
+    build: .
+    stdin_open: true
+    tty: true
+    command:
+      - pytest
+    environment:
+      DATABASE_URI: postgresql://test_user:test_password@db:5432/test_db
+    depends_on:
+      - db
+    links:
+      - "db:database"
+  db:
+    image: postgres:12
+    environment:
+      POSTGRES_DB: "test_db"
+      POSTGRES_USER: "test_user"
+      POSTGRES_PASSWORD: "test_password"
+      PGUSER: "postgres"
+
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./api/db/postgres-test-data:/var/lib/postgresql/data
