@@ -1,6 +1,17 @@
 # How to run tests
 
-Create database for testing
+# With `docker compose`
+
+Just run:
+```commandline
+docker compose up --build --exit-code-from run-tests
+```
+
+# Manually
+
+## Create database
+
+Start postgres through docker compose:
 
 ## Env variables
 
