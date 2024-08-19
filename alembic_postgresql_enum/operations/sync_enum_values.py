@@ -204,11 +204,11 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
 def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValuesOp):
     if op.is_column_type_import_needed:
-        autogen_context.imports.add("from alembic_postgresql_enum import ColumnType")
-    autogen_context.imports.add("from alembic_postgresql_enum import TableReference")
+        autogen_context.imports.add("from alembic_postgresql_enum import ColumnType  # type: ignore[attr-defined]")
+    autogen_context.imports.add("from alembic_postgresql_enum import TableReference  # type: ignore[attr-defined]")
 
     return (
-        f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r},\n"
+        f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r},  # type: ignore[attr-defined]\n"
         f"                    {op.affected_columns!r},\n"
         f"                    enum_values_to_rename=[])"
     )
