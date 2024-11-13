@@ -39,8 +39,7 @@ def test_add_new_enum_value_render_with_array(connection: "Connection"):
     autogenerate._render_migration_diffs(context, template_args)
 
     assert template_args["imports"] == (
-        "from alembic_postgresql_enum import ColumnType  # type: ignore[attr-defined]"
-        "\nfrom alembic_postgresql_enum import TableReference  # type: ignore[attr-defined]"
+        "from alembic_postgresql_enum import ColumnType" "\nfrom alembic_postgresql_enum import TableReference"
     )
 
     assert (
