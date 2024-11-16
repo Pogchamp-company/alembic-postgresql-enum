@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import alembic_postgresql_enum
 from alembic_postgresql_enum.configuration import Config, get_configuration
@@ -33,6 +33,9 @@ class CompareAndRunTestCase(ABC):
     @abstractmethod
     def get_expected_downgrade(self) -> str: ...
 
+    def get_expected_imports(self) -> Optional[str]:
+        return None
+
     def test_run(self, connection: "Connection"):
         old_config = get_configuration()
         alembic_postgresql_enum.set_configuration(self.config)
@@ -47,6 +50,7 @@ class CompareAndRunTestCase(ABC):
             target_schema,
             expected_upgrade=self.get_expected_upgrade(),
             expected_downgrade=self.get_expected_downgrade(),
+            expected_imports=self.get_expected_imports(),
             disable_running=self.disable_running,
         )
         alembic_postgresql_enum.set_configuration(old_config)

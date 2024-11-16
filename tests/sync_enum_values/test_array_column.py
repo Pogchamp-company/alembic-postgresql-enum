@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from alembic import autogenerate
 from alembic.autogenerate import api
@@ -63,7 +63,8 @@ class TestAddNewEnumValueRenderWithArray(CompareAndRunTestCase):
         # ### end Alembic commands ###
         """
 
-    "from alembic_postgresql_enum import ColumnType" "\nfrom alembic_postgresql_enum import TableReference"
+    def get_expected_imports(self) -> Optional[str]:
+        return "from alembic_postgresql_enum import ColumnType" "\nfrom alembic_postgresql_enum import TableReference"
 
 
 def test_add_new_enum_value_diff_tuple_with_array(connection: "Connection"):
