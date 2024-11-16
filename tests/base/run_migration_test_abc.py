@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+import alembic_postgresql_enum
+from alembic_postgresql_enum.configuration import Config, get_configuration
 from tests.base.render_and_run import compare_and_run
 
 if TYPE_CHECKING:
@@ -14,6 +16,7 @@ class CompareAndRunTestCase(ABC):
     """
 
     disable_running = False
+    config = Config()
 
     @abstractmethod
     def get_database_schema(self) -> MetaData: ...
@@ -31,6 +34,8 @@ class CompareAndRunTestCase(ABC):
     def get_expected_downgrade(self) -> str: ...
 
     def test_run(self, connection: "Connection"):
+        old_config = get_configuration()
+        alembic_postgresql_enum.set_configuration(self.config)
         database_schema = self.get_database_schema()
         target_schema = self.get_target_schema()
 
@@ -44,3 +49,4 @@ class CompareAndRunTestCase(ABC):
             expected_downgrade=self.get_expected_downgrade(),
             disable_running=self.disable_running,
         )
+        alembic_postgresql_enum.set_configuration(old_config)

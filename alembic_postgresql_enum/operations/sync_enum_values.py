@@ -7,6 +7,7 @@ import alembic.operations.ops
 from alembic.autogenerate.api import AutogenContext
 from sqlalchemy.exc import DataError
 
+from alembic_postgresql_enum.configuration import get_configuration
 from alembic_postgresql_enum.get_enum_data.types import Unspecified
 from alembic_postgresql_enum.sql_commands.column_default import (
     get_column_default,
@@ -203,12 +204,17 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
 @alembic.autogenerate.render.renderers.dispatch_for(SyncEnumValuesOp)
 def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValuesOp):
+    config = get_configuration()
     if op.is_column_type_import_needed:
         autogen_context.imports.add("from alembic_postgresql_enum import ColumnType")
     autogen_context.imports.add("from alembic_postgresql_enum import TableReference")
 
     return (
-        f"op.sync_enum_values({op.schema!r}, {op.name!r}, {op.new_values!r},  # type: ignore[attr-defined]\n"
-        f"                    {op.affected_columns!r},\n"
-        f"                    enum_values_to_rename=[])"
+        f"op.sync_enum_values({'  # type: ignore[attr-defined]' if config.add_type_ignore else ''}\n"
+        f"    enum_schema={op.schema!r},\n"
+        f"    enum_name={op.name!r},\n"
+        f"    new_values={op.new_values!r},\n"
+        f"    affected_columns={op.affected_columns!r},\n"
+        f"    enum_values_to_rename=[],\n"
+        f")"
     )
