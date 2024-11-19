@@ -1,5 +1,5 @@
 import textwrap
-from typing import TYPE_CHECKING, Union, List
+from typing import TYPE_CHECKING, Union, List, Optional
 
 import sqlalchemy
 from alembic import autogenerate
@@ -20,6 +20,7 @@ def compare_and_run(
     *,
     expected_upgrade: str,
     expected_downgrade: str,
+    expected_imports: Optional[str],
     disable_running: bool = False,
 ):
     """Compares generated migration script is equal to expected_upgrade and expected_downgrade, then runs it"""
@@ -37,6 +38,8 @@ def compare_and_run(
     expected_upgrade = textwrap.dedent(expected_upgrade).strip("\n ")
     expected_downgrade = textwrap.dedent(expected_downgrade).strip("\n ")
 
+    if expected_imports is not None:
+        assert template_args["imports"] == expected_imports
     assert upgrade_code == expected_upgrade, f"Got:\n{upgrade_code!r}\nExpected:\n{expected_upgrade!r}"
     assert downgrade_code == expected_downgrade, f"Got:\n{downgrade_code!r}\nExpected:\n{expected_downgrade!r}"
 
