@@ -1,5 +1,3 @@
-from alembic_postgresql_enum.configuration import Config
-
 # alembic-postgresql-enum
 [<img src="https://img.shields.io/pypi/pyversions/alembic-postgresql-enum">](https://pypi.org/project/alembic-postgresql-enum/)
 [<img src="https://img.shields.io/pypi/v/alembic-postgresql-enum">](https://pypi.org/project/alembic-postgresql-enum/)
