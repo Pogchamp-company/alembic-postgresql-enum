@@ -52,6 +52,7 @@ alembic_postgresql_enum.set_configuration(
 * [Creation of new enum values](#creation-of-new-enum-values)
 * [Deletion of enums values](#deletion-of-enums-values)
 * [Renaming of enum values](#rename-enum-value)
+* [Omitting managing enums](#omitting-managing-enums)
 
 ### Creation of enum<a id="creation-of-enum"></a>
 
@@ -284,3 +285,21 @@ def downgrade():
 Do not forget to switch places old and new values for downgrade
 
 All defaults in postgres will be renamed automatically as well
+
+### Omitting managing enums<a id="omitting-managing-enums"></a>
+
+If configured `include_name` function returns `False` given enum will be not managed.
+```python
+import alembic_postgresql_enum
+
+def include_name(name: str) -> bool:
+    return name not in ['enum-to-ignore', 'some-internal-enum']
+
+alembic_postgresql_enum.set_configuration(
+    alembic_postgresql_enum.Config(
+        include_name=include_name,
+    )
+)
+```
+
+Feature is similar to [sqlalchemy feature for tables](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#omitting-table-names-from-the-autogenerate-process)
