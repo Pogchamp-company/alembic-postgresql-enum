@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast, Optional
+from typing import Tuple, Any, Set, Union, List, TYPE_CHECKING, cast, Optional, Callable
 
 import sqlalchemy
 from alembic.operations.ops import UpgradeOps
@@ -52,6 +52,7 @@ def get_declared_enums(
     default_schema: str,
     connection: "Connection",
     upgrade_ops: Optional[UpgradeOps] = None,
+    include_name: Callable[[str], bool] = lambda _: True,
 ) -> DeclaredEnumValues:
     """
     Return a dict mapping SQLAlchemy declared enumeration types to the set of their values
@@ -98,6 +99,9 @@ def get_declared_enums(
                     column_type_wrapper = ColumnType.ARRAY
 
                 if not column_type_is_enum(column_type):
+                    continue
+
+                if not include_name(column_type.name):
                     continue
 
                 column_type_schema = column_type.schema or default_schema  # type: ignore[attr-defined]

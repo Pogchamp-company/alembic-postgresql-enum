@@ -66,7 +66,12 @@ def compare_enums(
         definitions = get_defined_enums(autogen_context.connection, schema, configuration.include_name)
 
         declarations = get_declared_enums(
-            autogen_context.metadata, schema, default_schema, autogen_context.connection, upgrade_ops
+            autogen_context.metadata,
+            schema,
+            default_schema,
+            autogen_context.connection,
+            upgrade_ops,
+            configuration.include_name,
         )
 
         create_new_enums(definitions, declarations.enum_values, schema, upgrade_ops)
