@@ -19,23 +19,19 @@ class CompareAndRunTestCase(ABC):
     config = Config()
 
     @abstractmethod
-    def get_database_schema(self) -> MetaData:
-        ...
+    def get_database_schema(self) -> MetaData: ...
 
     @abstractmethod
-    def get_target_schema(self) -> MetaData:
-        ...
+    def get_target_schema(self) -> MetaData: ...
 
     def insert_migration_data(self, connection: "Connection", database_schema: MetaData) -> None:
         pass
 
     @abstractmethod
-    def get_expected_upgrade(self) -> str:
-        ...
+    def get_expected_upgrade(self) -> str: ...
 
     @abstractmethod
-    def get_expected_downgrade(self) -> str:
-        ...
+    def get_expected_downgrade(self) -> str: ...
 
     def get_expected_imports(self) -> Optional[str]:
         return None
