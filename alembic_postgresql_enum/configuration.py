@@ -6,6 +6,8 @@ from typing import Callable
 class Config:
     add_type_ignore: bool = False
     include_name: Callable[[str], bool] = lambda _: True
+    drop_unused_enums: bool = True
+    detect_enum_values_changes: bool = True
 
 
 _config = Config()
