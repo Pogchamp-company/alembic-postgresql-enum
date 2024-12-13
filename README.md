@@ -45,18 +45,30 @@ alembic_postgresql_enum.set_configuration(
     )
 )
 ```
+
+Default configuration:
+```python
+alembic_postgresql_enum.Config(
+    add_type_ignore = False,
+    include_name = lambda _: True,
+    drop_unused_enums = True,
+    detect_enum_values_changes = True,
+)
+```
+
 ## Features
 
 * [Creation of enums](#creation-of-enum)
 * [Deletion of unreferenced enums](#deletion-of-unreferenced-enum)
-* [Creation of new enum values](#creation-of-new-enum-values)
-* [Deletion of enums values](#deletion-of-enums-values)
-* [Renaming of enum values](#rename-enum-value)
+* [Detection of enum values changes](#detection-of-enum-values-changes)
+  * [Creation of new enum values](#creation-of-new-enum-values)
+  * [Deletion of enums values](#deletion-of-enums-values)
+  * [Renaming of enum values](#rename-enum-value)
 * [Omitting managing enums](#omitting-managing-enums)
 
-### Creation of enum<a id="creation-of-enum"></a>
+## Creation of enum<a id="creation-of-enum"></a>
 
-#### When table is created
+### When table is created
 
 ```python
 class MyEnum(enum.Enum):
@@ -93,7 +105,7 @@ def downgrade():
     # ### end Alembic commands ###
 ```
 
-#### When column is added
+### When column is added
 ```python
 class MyEnum(enum.Enum):
     one = 1
@@ -125,7 +137,7 @@ def downgrade():
     # ### end Alembic commands ###
 ```
 
-### Deletion of unreferenced enum<a id="deletion-of-unreferenced-enum"></a>
+## Deletion of unreferenced enum<a id="deletion-of-unreferenced-enum"></a>
 If enum is defined in postgres schema, but its mentions removed from code - It will be automatically removed
 ```python
 class ExampleTable(BaseModel):
@@ -147,6 +159,10 @@ def downgrade():
     op.add_column('example_table', sa.Column('enum_field', postgresql.ENUM('one', 'two', 'four', name='myenum', create_type=False), autoincrement=False, nullable=True))
     # ### end Alembic commands ###
 ```
+
+## Detection of enum values changes<a id="detection-of-enum-values-changes"></a>
+
+***Can be disabled with `detect_enum_values_changes` configuration flag turned off***
 
 ### Creation of new enum values<a id="creation-of-new-enum-values"></a>
 
@@ -221,6 +237,7 @@ def downgrade():
     # ### end Alembic commands ###
 ```
 
+
 ### Rename enum value<a id="rename-enum-value"></a>
 In this case you must manually edit migration
 
@@ -286,7 +303,7 @@ Do not forget to switch places old and new values for downgrade
 
 All defaults in postgres will be renamed automatically as well
 
-### Omitting managing enums<a id="omitting-managing-enums"></a>
+## Omitting managing enums<a id="omitting-managing-enums"></a>
 
 If configured `include_name` function returns `False` given enum will be not managed.
 ```python
