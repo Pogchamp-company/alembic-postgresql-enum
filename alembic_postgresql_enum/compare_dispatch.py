@@ -15,7 +15,7 @@ from alembic_postgresql_enum.detection_of_changes import (
     drop_unused_enums,
 )
 from alembic_postgresql_enum.get_enum_data import get_defined_enums, get_declared_enums
-
+from alembic_postgresql_enum.configuration import get_configuration
 
 log = logging.getLogger(f"alembic.{__name__}")
 
@@ -48,6 +48,8 @@ def compare_enums(
     add_create_type_false(upgrade_ops)
     add_postgres_using_to_text(upgrade_ops)
 
+    configuration = get_configuration()
+
     schema_names = list(schema_names)
 
     # Issue #40
@@ -61,9 +63,15 @@ def compare_enums(
         if schema is None:
             schema = default_schema
 
-        definitions = get_defined_enums(autogen_context.connection, schema)
+        definitions = get_defined_enums(autogen_context.connection, schema, configuration.include_name)
+
         declarations = get_declared_enums(
-            autogen_context.metadata, schema, default_schema, autogen_context.connection, upgrade_ops
+            autogen_context.metadata,
+            schema,
+            default_schema,
+            autogen_context.connection,
+            upgrade_ops,
+            configuration.include_name,
         )
 
         create_new_enums(definitions, declarations.enum_values, schema, upgrade_ops)
