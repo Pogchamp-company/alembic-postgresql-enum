@@ -30,32 +30,6 @@ import alembic_postgresql_enum
 
 To the top of your migrations/env.py file.
 
-## Configuration
-
-You can configure this extension to disable parts of it, or to enable some feature flags
-
-To do so you need to call set_configuration function after the import:
-
-```python
-import alembic_postgresql_enum
-
-alembic_postgresql_enum.set_configuration(
-    alembic_postgresql_enum.Config(
-        add_type_ignore=True,
-    )
-)
-```
-
-Default configuration:
-```python
-alembic_postgresql_enum.Config(
-    add_type_ignore = False,
-    include_name = lambda _: True,
-    drop_unused_enums = True,
-    detect_enum_values_changes = True,
-)
-```
-
 ## Features
 
 * [Creation of enums](#creation-of-enum)
@@ -320,3 +294,33 @@ alembic_postgresql_enum.set_configuration(
 ```
 
 Feature is similar to [sqlalchemy feature for tables](https://alembic.sqlalchemy.org/en/latest/autogenerate.html#omitting-table-names-from-the-autogenerate-process)
+
+## Configuration
+
+You can configure this extension to disable parts of it, or to enable some feature flags
+
+To do so you need to call set_configuration function after the import:
+
+```python
+import alembic_postgresql_enum
+
+alembic_postgresql_enum.set_configuration(
+    alembic_postgresql_enum.Config(
+        add_type_ignore=True,
+    )
+)
+```
+
+Available options:
+
+- `add_type_ignore` (`False` by default) - flag that can be turned on 
+to add `# type: ignore[attr-defined]` at the end of generated `op.sync_enum_values` calls.
+This is helpful if you are using type checker such as `mypy`.
+`type: ignore` is needed because there is no way to add new function to an existing alembic's `op`.
+
+- `include_name` (`lambda _: True` bby default) - it adds ability to ignore process enum by name in similar way alembic allows to define `include_name` function. 
+This property accepts function that takes enum name and returns whether it should be processed.  
+
+- `drop_unused_enums` (`True` by default) - feature flag that can be turned off to disable clean up of undeclared enums
+
+- `detect_enum_values_changes` (`True` by default) - feature flag that can be turned off to disable generation of `op.sync_enum_values`.
