@@ -76,12 +76,14 @@ def compare_enums(
 
         create_new_enums(definitions, declarations.enum_values, schema, upgrade_ops)
 
-        drop_unused_enums(definitions, declarations.enum_values, schema, upgrade_ops)
+        if configuration.drop_unused_enums:
+            drop_unused_enums(definitions, declarations.enum_values, schema, upgrade_ops)
 
-        sync_changed_enums(
-            definitions,
-            declarations.enum_values,
-            declarations.enum_table_references,
-            schema,
-            upgrade_ops,
-        )
+        if configuration.detect_enum_values_changes:
+            sync_changed_enums(
+                definitions,
+                declarations.enum_values,
+                declarations.enum_table_references,
+                schema,
+                upgrade_ops,
+            )

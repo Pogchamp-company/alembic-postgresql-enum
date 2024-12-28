@@ -66,7 +66,6 @@ def rename_default_if_required(
         return column_default_value
 
     if default_value.endswith("[]"):
-
         # remove old type postfix
         column_default_value = default_value[: default_value.find("::")]
 
