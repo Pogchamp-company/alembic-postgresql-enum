@@ -76,11 +76,11 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         affected_columns: List[TableReference],
         enum_values_to_rename: List[Tuple[str, str]],
     ):
-        enum_type_name = f"{enum_schema}.{enum_name}"
+        enum_type_name = f'"{enum_schema}"."{enum_name}"'
         temporary_enum_name = f"{enum_name}_old"
 
-        rename_type(connection, enum_schema, enum_name, temporary_enum_name)
-        create_type(connection, enum_schema, enum_name, new_values)
+        rename_type(connection, enum_type_name, temporary_enum_name)
+        create_type(connection, enum_type_name, new_values)
 
         create_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name, enum_values_to_rename)
 
@@ -88,7 +88,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             column_default = table_reference.existing_server_default
 
             if column_default is not None:
-                drop_default(connection, table_reference.table_name_with_schema, table_reference.column_name)
+                drop_default(connection, table_reference)
 
             try:
                 cast_old_enum_type_to_new(connection, table_reference, enum_type_name, enum_values_to_rename)
@@ -104,12 +104,11 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                     enum_schema, column_default, enum_name, enum_values_to_rename
                 )
 
-                set_default(
-                    connection, table_reference.table_name_with_schema, table_reference.column_name, column_default
-                )
+                set_default(connection, table_reference, column_default)
 
         drop_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name)
-        drop_type(connection, enum_schema, temporary_enum_name)
+        temporary_enum_type_name = f'"{enum_schema}"."{temporary_enum_name}"'
+        drop_type(connection, temporary_enum_type_name)
 
     @classmethod
     def sync_enum_values(

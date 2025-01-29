@@ -5,7 +5,7 @@ import pytest
 import sqlalchemy
 from sqlalchemy import create_engine
 
-from tests.schemas import ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA
+from tests.schemas import ANOTHER_SCHEMA_NAME, DEFAULT_SCHEMA, KEYWORD_SCHEMA_NAME
 
 try:
     import dotenv
@@ -27,6 +27,8 @@ def connection() -> Generator:
             CREATE SCHEMA {DEFAULT_SCHEMA};
             DROP SCHEMA IF EXISTS {ANOTHER_SCHEMA_NAME} CASCADE;
             CREATE SCHEMA {ANOTHER_SCHEMA_NAME};
+            DROP SCHEMA IF EXISTS "{KEYWORD_SCHEMA_NAME}" CASCADE;
+            CREATE SCHEMA "{KEYWORD_SCHEMA_NAME}";
         """
             )
         )
