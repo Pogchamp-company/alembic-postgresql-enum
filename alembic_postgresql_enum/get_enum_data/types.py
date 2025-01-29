@@ -45,10 +45,14 @@ class TableReference:
     @property
     def table_name_with_schema(self):
         if self.table_schema:
-            prefix = f"{self.table_schema}."
+            prefix = f'"{self.table_schema}".'
         else:
             prefix = ""
         return f'{prefix}"{self.table_name}"'
+
+    @property
+    def escaped_column_name(self):
+        return f'"{self.column_name}"'
 
 
 EnumNamesToValues = Dict[str, Tuple[str, ...]]

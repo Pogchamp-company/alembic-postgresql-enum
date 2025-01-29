@@ -14,7 +14,7 @@ def cast_old_array_enum_type_to_new(
     enum_type_name: str,
     enum_values_to_rename: List[Tuple[str, str]],
 ):
-    cast_clause = f"{table_reference.column_name}::text[]"
+    cast_clause = f"{table_reference.escaped_column_name}::text[]"
 
     for old_value, new_value in enum_values_to_rename:
         cast_clause = f"""array_replace({cast_clause}, '{old_value}', '{new_value}')"""
@@ -22,7 +22,7 @@ def cast_old_array_enum_type_to_new(
     connection.execute(
         sqlalchemy.text(
             f"""ALTER TABLE {table_reference.table_name_with_schema} 
-            ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name}[]
+            ALTER COLUMN {table_reference.escaped_column_name} TYPE {enum_type_name}[]
             USING {cast_clause}::{enum_type_name}[]
             """
         )
@@ -43,13 +43,13 @@ def cast_old_enum_type_to_new(
         connection.execute(
             sqlalchemy.text(
                 f"""ALTER TABLE {table_reference.table_name_with_schema} 
-                ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
+                ALTER COLUMN {table_reference.escaped_column_name} TYPE {enum_type_name} 
                 USING CASE 
                 {' '.join(
-                f"WHEN {table_reference.column_name}::text = '{old_value}' THEN '{new_value}'::{enum_type_name}"
+                f"WHEN {table_reference.escaped_column_name}::text = '{old_value}' THEN '{new_value}'::{enum_type_name}"
                 for old_value, new_value in enum_values_to_rename)}
 
-                ELSE {table_reference.column_name}::text::{enum_type_name}
+                ELSE {table_reference.escaped_column_name}::text::{enum_type_name}
                 END
                 """
             )
@@ -58,26 +58,24 @@ def cast_old_enum_type_to_new(
         connection.execute(
             sqlalchemy.text(
                 f"""ALTER TABLE {table_reference.table_name_with_schema} 
-                ALTER COLUMN {table_reference.column_name} TYPE {enum_type_name} 
-                USING {table_reference.column_name}::text::{enum_type_name}
+                ALTER COLUMN {table_reference.escaped_column_name} TYPE {enum_type_name} 
+                USING {table_reference.escaped_column_name}::text::{enum_type_name}
                 """
             )
         )
 
 
-def drop_type(connection: "Connection", schema: str, type_name: str):
-    connection.execute(sqlalchemy.text(f"""DROP TYPE {schema}.{type_name}"""))
+def drop_type(connection: "Connection", enum_type_name: str):
+    connection.execute(sqlalchemy.text(f"""DROP TYPE {enum_type_name}"""))
 
 
-def rename_type(connection: "Connection", schema: str, type_name: str, new_type_name: str):
-    connection.execute(sqlalchemy.text(f"""ALTER TYPE {schema}.{type_name} RENAME TO {new_type_name}"""))
+def rename_type(connection: "Connection", enum_type_name: str, new_type_name: str):
+    connection.execute(sqlalchemy.text(f"""ALTER TYPE {enum_type_name} RENAME TO {new_type_name}"""))
 
 
-def create_type(connection: "Connection", schema: str, type_name: str, enum_values: List[str]):
+def create_type(connection: "Connection", enum_type_name: str, enum_values: List[str]):
     connection.execute(
-        sqlalchemy.text(
-            f"""CREATE TYPE {schema}.{type_name} AS ENUM({', '.join(f"'{value}'" for value in enum_values)})"""
-        )
+        sqlalchemy.text(f"""CREATE TYPE {enum_type_name} AS ENUM({', '.join(f"'{value}'" for value in enum_values)})""")
     )
 
 

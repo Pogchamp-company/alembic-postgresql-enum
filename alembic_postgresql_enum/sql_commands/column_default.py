@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Union, List, Tuple
 
 import sqlalchemy
 
+from alembic_postgresql_enum.get_enum_data.types import TableReference
+
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
@@ -26,30 +28,32 @@ def get_column_default(
     return default_value
 
 
-def drop_default(connection: "Connection", table_name_with_schema: str, column_name: str):
+def drop_default(
+    connection: "Connection",
+    table_reference: TableReference,
+):
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {table_name_with_schema}
-             ALTER COLUMN {column_name} DROP DEFAULT"""
+            f"""ALTER TABLE {table_reference.table_name_with_schema}
+             ALTER COLUMN {table_reference.escaped_column_name} DROP DEFAULT"""
         )
     )
 
 
 def set_default(
     connection: "Connection",
-    table_name_with_schema: str,
-    column_name: str,
+    table_reference: TableReference,
     default_value: str,
 ):
     connection.execute(
         sqlalchemy.text(
-            f"""ALTER TABLE {table_name_with_schema}
-            ALTER COLUMN {column_name} SET DEFAULT {default_value}"""
+            f"""ALTER TABLE {table_reference.table_name_with_schema}
+            ALTER COLUMN {table_reference.escaped_column_name} SET DEFAULT {default_value}"""
         )
     )
 
 
-def rename_default_if_required(
+def rename_default_if_required(  # todo smells like teen shit
     schema: str,
     default_value: str,
     enum_name: str,
