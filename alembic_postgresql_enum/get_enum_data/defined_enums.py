@@ -7,11 +7,18 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
 
-def _remove_schema_prefix(enum_name: str, schema: str) -> str:
+def _extract_enum_name(enum_name: str, schema: str) -> str:
+    # Remove schema
     schema_prefix = f"{schema}."
-
+    quoted_schema_prefix = f'"{schema}".'
     if enum_name.startswith(schema_prefix):
         enum_name = enum_name[len(schema_prefix) :]
+    elif enum_name.startswith(quoted_schema_prefix):
+        enum_name = enum_name[len(quoted_schema_prefix) :]
+
+    # Remove quotes
+    if enum_name.startswith('"') and enum_name.startswith('"'):
+        enum_name = enum_name[1:-1]
 
     return enum_name
 
@@ -37,7 +44,7 @@ def get_defined_enums(
     return {
         enum_name: tuple(values)
         for enum_name, values in (
-            (_remove_schema_prefix(name, schema), values) for name, values in get_all_enums(connection, schema)
+            (_extract_enum_name(name, schema), values) for name, values in get_all_enums(connection, schema)
         )
         if include_name(enum_name)
     }
