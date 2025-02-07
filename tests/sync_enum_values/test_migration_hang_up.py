@@ -1,20 +1,23 @@
 import enum
 from typing import TYPE_CHECKING
 
+import pytest
 import sqlalchemy
 
 if TYPE_CHECKING:
     from sqlalchemy import Connection
 from sqlalchemy import MetaData, Column, Integer, insert
-from sqlalchemy.orm import DeclarativeBase
 
 from tests.base.run_migration_test_abc import CompareAndRunTestCase
 
 
+@pytest.mark.skipif(sqlalchemy.__version__.startswith("1."), reason="Tables are made in 2.0 style")
 class TestMigrationHangUp(CompareAndRunTestCase):
     """https://github.com/Pogchamp-company/alembic-postgresql-enum/issues/102"""
 
     def get_database_schema(self) -> MetaData:
+        from sqlalchemy.orm import DeclarativeBase
+
         my_metadata = MetaData()
 
         class Base(DeclarativeBase):
@@ -46,6 +49,8 @@ class TestMigrationHangUp(CompareAndRunTestCase):
         return my_metadata
 
     def get_target_schema(self) -> MetaData:
+        from sqlalchemy.orm import DeclarativeBase
+
         my_metadata = MetaData()
 
         class Base(DeclarativeBase):

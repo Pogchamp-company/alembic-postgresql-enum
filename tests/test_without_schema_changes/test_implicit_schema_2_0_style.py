@@ -80,7 +80,7 @@ def test_get_declared_enums(connection: "Connection"):
     }
 
 
-@pytest.mark.skipif(sqlalchemy.__version__.startswith("1."), reason="Table are made in 2.0 style")
+@pytest.mark.skipif(sqlalchemy.__version__.startswith("1."), reason="Tables are made in 2.0 style")
 class TestCompareAndRunCreateTable(CompareAndRunTestCase):
     def get_database_schema(self) -> MetaData:
         return MetaData()
