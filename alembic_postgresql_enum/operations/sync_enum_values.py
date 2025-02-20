@@ -142,7 +142,10 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             ]
             If there was server default with old_name it will be renamed accordingly
         """
-        if operations.migration_context.dialect.name != "postgresql":
+
+        config = get_configuration()
+
+        if operations.migration_context.dialect.name != "postgresql" and not config.force_dialect_support:
             log.warning(
                 f"This library only supports postgresql, but you are using {operations.migration_context.dialect.name}, skipping"
             )
