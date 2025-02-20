@@ -324,3 +324,6 @@ This property accepts function that takes enum name and returns whether it shoul
 - `drop_unused_enums` (`True` by default) - feature flag that can be turned off to disable clean up of undeclared enums
 
 - `detect_enum_values_changes` (`True` by default) - feature flag that can be turned off to disable generation of `op.sync_enum_values`.
+
+- `force_dialect_support` (`False` by default) - if you are using one of the postgresql dialects 
+you can activate the library with this flag. **WARNING** we do not guarantee the performance of our extension with this flag enabled.

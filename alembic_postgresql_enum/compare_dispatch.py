@@ -39,7 +39,9 @@ def compare_enums(
         and autogen_context.metadata is not None
     )
 
-    if autogen_context.dialect.name != "postgresql":
+    configuration = get_configuration()
+
+    if autogen_context.dialect.name != "postgresql" and not configuration.force_dialect_support:
         log.warning(
             f"This library only supports postgresql, but you are using {autogen_context.dialect.name}, skipping"
         )
@@ -47,8 +49,6 @@ def compare_enums(
 
     add_create_type_false(upgrade_ops)
     add_postgres_using_to_text(upgrade_ops)
-
-    configuration = get_configuration()
 
     schema_names = list(schema_names)
 
