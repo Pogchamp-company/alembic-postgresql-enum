@@ -31,7 +31,7 @@ def sync_changed_enums(
 
         old_values = defined_enums[enum_name]
 
-        if new_values == old_values:
+        if sorted(new_values) == sorted(old_values):
             # Enum definition and declaration are in sync
             continue
 
