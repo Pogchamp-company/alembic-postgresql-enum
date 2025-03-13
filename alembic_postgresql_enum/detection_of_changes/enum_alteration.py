@@ -13,6 +13,7 @@ from alembic_postgresql_enum.get_enum_data import (
     EnumNamesToTableReferences,
 )
 from alembic_postgresql_enum.operations.sync_enum_values import SyncEnumValuesOp
+from alembic_postgresql_enum.configuration import get_configuration
 
 log = logging.getLogger(f"alembic.{__name__}")
 
@@ -24,6 +25,8 @@ def sync_changed_enums(
     schema: str,
     upgrade_ops: UpgradeOps,
 ):
+    configuration = get_configuration()
+
     for enum_name, new_values in declared_enums.items():
         if enum_name not in defined_enums:
             # That is work for create_new_enums function
@@ -31,7 +34,12 @@ def sync_changed_enums(
 
         old_values = defined_enums[enum_name]
 
-        if sorted(new_values) == sorted(old_values):
+        are_values_equal = (
+            new_values == old_values
+            if not configuration.ignore_enum_values_order
+            else sorted(new_values) == sorted(old_values)
+        )
+        if are_values_equal:
             # Enum definition and declaration are in sync
             continue
 

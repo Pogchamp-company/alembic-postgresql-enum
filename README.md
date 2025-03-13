@@ -327,3 +327,5 @@ This property accepts function that takes enum name and returns whether it shoul
 
 - `force_dialect_support` (`False` by default) - if you are using one of the postgresql dialects 
 you can activate the library with this flag. **WARNING** we do not guarantee the performance of our extension with this flag enabled.
+
+- `ignore_enum_values_order` (`False` by default) - flag that can be turned on to ignore changes in enum value order, because, by default, [values order matters in postgresql](https://www.postgresql.org/docs/current/datatype-enum.html#DATATYPE-ENUM-ORDERING).
