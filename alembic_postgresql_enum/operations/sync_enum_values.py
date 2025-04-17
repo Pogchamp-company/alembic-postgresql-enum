@@ -79,7 +79,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         enum_type_name = f'"{enum_schema}"."{enum_name}"'
         temporary_enum_name = f"{enum_name}_old"
 
-        rename_type(connection, enum_type_name, temporary_enum_name)
+        rename_type(connection, enum_type_name, f'"{temporary_enum_name}"')
         create_type(connection, enum_type_name, new_values)
 
         create_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name, enum_values_to_rename)
