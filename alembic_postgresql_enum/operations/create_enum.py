@@ -20,11 +20,12 @@ class CreateEnumOp(EnumLifecycleOp):
 @alembic.autogenerate.render.renderers.dispatch_for(CreateEnumOp)
 def render_create_enum_op(autogen_context: AutogenContext, op: CreateEnumOp):
     assert autogen_context.dialect is not None
+    sqlalchemy_module_prefix = autogen_context.opts.get("sqlalchemy_module_prefix", "sa.")
     if op.schema != autogen_context.dialect.default_schema_name:
         return f"""
-            sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}', schema='{op.schema}').create(op.get_bind())
+            {sqlalchemy_module_prefix}Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}', schema='{op.schema}').create(op.get_bind())
             """.strip()
 
     return f"""
-        sa.Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').create(op.get_bind())
+        {sqlalchemy_module_prefix}Enum({', '.join(map(repr, op.enum_values))}, name='{op.name}').create(op.get_bind())
         """.strip()
