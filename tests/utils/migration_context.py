@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Any, Dict, List, Union
 
 from alembic.runtime.migration import MigrationContext
 from sqlalchemy import MetaData
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 from sqlalchemy.dialects import postgresql
 
 
-def default_migration_options(target_schema: Union[MetaData, List[MetaData]]) -> dict:
+def default_migration_options(target_schema: Union[MetaData, List[MetaData]]) -> dict[str, Any]:
     return {
         "alembic_module_prefix": "op.",
         "sqlalchemy_module_prefix": "sa.",
@@ -22,9 +22,16 @@ def default_migration_options(target_schema: Union[MetaData, List[MetaData]]) ->
     }
 
 
-def create_migration_context(connection: "Connection", target_schema: Union[MetaData, List[MetaData]]):
+def create_migration_context(
+    connection: "Connection",
+    target_schema: Union[MetaData, List[MetaData]],
+    *,
+    migration_options_overrides: Dict[str, Any] = {}
+) -> MigrationContext:
+    migration_options = default_migration_options(target_schema)
+    migration_options.update(migration_options_overrides)
     return MigrationContext.configure(
         connection=connection,
-        opts=default_migration_options(target_schema),
+        opts=migration_options,
         dialect=postgresql.dialect,
     )
