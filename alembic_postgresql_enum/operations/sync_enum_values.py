@@ -1,5 +1,5 @@
 import logging
-from typing import List, Tuple, Any, Iterable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Iterable, List, Tuple
 
 import alembic.autogenerate
 import alembic.operations.base
@@ -10,10 +10,10 @@ from sqlalchemy.exc import DataError
 from alembic_postgresql_enum.configuration import get_configuration
 from alembic_postgresql_enum.get_enum_data.types import Unspecified
 from alembic_postgresql_enum.sql_commands.column_default import (
-    get_column_default,
     drop_default,
-    set_default,
+    get_column_default,
     rename_default_if_required,
+    set_default,
 )
 from alembic_postgresql_enum.sql_commands.comparison_operators import (
     create_comparison_operators,
@@ -21,17 +21,16 @@ from alembic_postgresql_enum.sql_commands.comparison_operators import (
 )
 from alembic_postgresql_enum.sql_commands.enum_type import (
     cast_old_enum_type_to_new,
+    create_type,
     drop_type,
     rename_type,
-    create_type,
 )
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
 from alembic_postgresql_enum.connection import get_connection
-from alembic_postgresql_enum.get_enum_data import TableReference, ColumnType
-
+from alembic_postgresql_enum.get_enum_data import ColumnType, TableReference
 
 log = logging.getLogger(f"alembic.{__name__}")
 
@@ -94,7 +93,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 cast_old_enum_type_to_new(connection, table_reference, enum_type_name, enum_values_to_rename)
             except DataError as error:
                 raise ValueError(
-                    f"""New enum values can not be set due to some row containing reference to old enum value.
+                    """New enum values can not be set due to some row containing reference to old enum value.
                         Please consider using enum_values_to_rename parameter or "
                     f"updating/deleting these row before calling sync_enum_values."""
                 ) from error
@@ -210,9 +209,10 @@ def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValue
     if op.is_column_type_import_needed:
         autogen_context.imports.add("from alembic_postgresql_enum import ColumnType")
     autogen_context.imports.add("from alembic_postgresql_enum import TableReference")
+    alembic_module_prefix = autogen_context.opts.get("alembic_module_prefix", "op.")
 
     return (
-        f"op.sync_enum_values({'  # type: ignore[attr-defined]' if config.add_type_ignore else ''}\n"
+        f"{alembic_module_prefix}sync_enum_values({'  # type: ignore[attr-defined]' if config.add_type_ignore else ''}\n"
         f"    enum_schema={op.schema!r},\n"
         f"    enum_name={op.name!r},\n"
         f"    new_values={op.new_values!r},\n"
