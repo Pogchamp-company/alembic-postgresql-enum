@@ -39,7 +39,7 @@ def get_replacement_type(column_type):
         log.info("%r converted into postgresql.ENUM", replacement_enum_type)
         replacement_enum_type = eval(repr(replacement_enum_type).replace("Enum", "postgresql.ENUM"))
 
-    if isinstance(replacement_enum_type, postgresql.ENUM):
+    if isinstance(replacement_enum_type, postgresql.ENUM) and not isinstance(replacement_enum_type, ReprWorkaround):
         if replacement_enum_type.create_type:
             log.info("create_type=False injected into %r", replacement_enum_type)
 
