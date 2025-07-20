@@ -151,7 +151,7 @@ def get_schema_by_declared_enum_values(target: DeclaredEnumValues) -> MetaData:
             *(
                 _enum_column_factory(target, column_name, enum_name, column_type)
                 for column_name, enum_name, column_type in columns_with_enum_names
-            )
+            ),
         )
 
     return schema
