@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 import alembic_postgresql_enum
 from alembic_postgresql_enum.configuration import Config, get_configuration
@@ -17,6 +17,7 @@ class CompareAndRunTestCase(ABC):
 
     disable_running = False
     config = Config()
+    migration_options_overrides: Dict[str, Any] = {}
 
     @abstractmethod
     def get_database_schema(self) -> MetaData: ...
@@ -52,5 +53,6 @@ class CompareAndRunTestCase(ABC):
             expected_downgrade=self.get_expected_downgrade(),
             expected_imports=self.get_expected_imports(),
             disable_running=self.disable_running,
+            migration_options_overrides=self.migration_options_overrides,
         )
         alembic_postgresql_enum.set_configuration(old_config)
