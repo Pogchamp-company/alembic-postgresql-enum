@@ -9,6 +9,7 @@ class Config:
     drop_unused_enums: bool = True
     detect_enum_values_changes: bool = True
     force_dialect_support: bool = False
+    ignore_enum_values_order: bool = False
 
 
 _config = Config()
