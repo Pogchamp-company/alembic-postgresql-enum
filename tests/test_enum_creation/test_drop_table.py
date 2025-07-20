@@ -1,3 +1,6 @@
+import sys
+
+import pytest
 from sqlalchemy import MetaData
 
 from tests.base.run_migration_test_abc import CompareAndRunTestCase
@@ -8,6 +11,7 @@ from tests.schemas import (
 )
 
 
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="sa.PrimaryKeyConstraint.name generation changed in alembic 1.15")
 class TestDropEnumAfterDropTable(CompareAndRunTestCase):
     """Check that library correctly drop enum after drop_table"""
 
