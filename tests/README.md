@@ -11,7 +11,7 @@ docker compose up --build --exit-code-from run-tests
 
 ## Create database
 
-Start postgres through docker compose:
+Start a postgres instance
 
 ## Env variables
 
