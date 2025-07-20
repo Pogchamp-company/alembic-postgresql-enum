@@ -52,6 +52,6 @@ jobs:
       - name: Install requirements
         run: uv sync --locked --group=${{matrix.uv-group}}
       - name: Run tests
-        run: pytest
+        run: uv run pytest
         env:
           DATABASE_URI: postgresql://postgres:postgres@localhost:5432/postgres
