@@ -34,7 +34,7 @@ class TestDropEnumAfterDropTable(CompareAndRunTestCase):
         op.create_table('users',
         sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
         sa.Column('status', postgresql.ENUM('active', 'passive', name='user_status', create_type=False), autoincrement=False, nullable=True),
-        sa.PrimaryKeyConstraint('id', name='users_pkey')
+        sa.PrimaryKeyConstraint('id', name=op.f('users_pkey'))
         )
         # ### end Alembic commands ###
         """
