@@ -18,10 +18,8 @@ class ReprWorkaround(postgresql.ENUM):
     As postgresql.ENUM does not include create_type inside __repr__, we have to swap it with custom type
     """
 
-    __module__ = "sqlalchemy.dialects.postgresql"
-
     def __repr__(self):
-        return f"{super().__repr__()[:-1]}, create_type=False)".replace("ReprWorkaround", "ENUM").replace(
+        return f"{super().__repr__()[:-1]}, create_type=False)".replace(self.__class__.__name__, "postgresql.ENUM").replace(
             ", metadata=MetaData()", ""
         )
 
@@ -39,7 +37,7 @@ def get_replacement_type(column_type):
         log.info("%r converted into postgresql.ENUM", replacement_enum_type)
         replacement_enum_type = eval(repr(replacement_enum_type).replace("Enum", "postgresql.ENUM"))
 
-    if isinstance(replacement_enum_type, postgresql.ENUM):
+    if isinstance(replacement_enum_type, postgresql.ENUM) and not isinstance(replacement_enum_type, ReprWorkaround):
         if replacement_enum_type.create_type:
             log.info("create_type=False injected into %r", replacement_enum_type)
 

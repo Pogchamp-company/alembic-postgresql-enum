@@ -13,6 +13,7 @@ def default_migration_options(target_schema: Union[MetaData, List[MetaData]]) ->
     return {
         "alembic_module_prefix": "op.",
         "sqlalchemy_module_prefix": "sa.",
+        "user_module_prefix": "",
         "compare_type": True,
         "compare_server_default": True,
         "target_metadata": target_schema,
