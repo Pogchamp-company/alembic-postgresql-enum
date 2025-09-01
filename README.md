@@ -38,6 +38,7 @@ To the top of your migrations/env.py file.
   * [Creation of new enum values](#creation-of-new-enum-values)
   * [Deletion of enums values](#deletion-of-enums-values)
   * [Renaming of enum values](#rename-enum-value)
+* [Partial index preservation](#partial-index-preservation)
 * [Omitting managing enums](#omitting-managing-enums)
 
 ## Creation of enum<a id="creation-of-enum"></a>
@@ -276,6 +277,86 @@ def downgrade():
 Do not forget to switch places old and new values for downgrade
 
 All defaults in postgres will be renamed automatically as well
+
+## Partial index preservation<a id="partial-index-preservation"></a>
+
+When modifying enum values, partial indexes that reference the enum type are preserved via dropping and recreating. This is particularly important for indexes with `WHERE` clauses that use enum comparisons. Depending on the size and complexity of the index this might impact the speed and locking nature of the schema migration.
+
+**Note:** For alembic's offline mode support, partial index detection happens during migration generation time. The detected indexes are then passed to the migration as a parameter. This ensures that offline migrations can execute without needing database access.
+
+### Example Scenario
+
+Consider a table with a partial unique index:
+
+```python
+class UserStatus(enum.Enum):
+    active = "active"
+    deleted = "deleted"
+
+class User(Base):
+    __tablename__ = "user"
+    id = Column(Integer, primary_key=True)
+    username = Column(String, nullable=False)
+    status = Column(postgresql.ENUM(UserStatus))
+    
+    __table_args__ = (
+        Index(
+            "uq_user_username",
+            "username",
+            unique=True,
+            postgresql_where=(text("status != 'deleted'")),
+        ),
+    )
+```
+
+When you add a new enum value (e.g., `pending`), the library will:
+
+1. **Detect** any indexes that reference the enum type in their WHERE clauses (during migration generation)
+2. **Temporarily drop** these indexes before modifying the enum
+3. **Recreate** the indexes with their original definitions after the enum modification is complete
+
+In the generated migration, indexes are included as a parameter:
+
+```python
+from alembic_postgresql_enum.sql_commands.indexes import TableIndex
+
+op.sync_enum_values(
+    enum_schema='public',
+    enum_name='userstatus',
+    new_values=['active', 'pending', 'deleted'],
+    affected_columns=[TableReference(...)],
+    enum_values_to_rename=[],
+    indexes_to_recreate=[
+        TableIndex(
+            name='uq_user_username',
+            definition="CREATE UNIQUE INDEX uq_user_username ON users USING btree (username) WHERE (status <> 'deleted'::userstatus)",
+        ),
+    ],
+)
+```
+
+This ensures that partial indexes like `WHERE status != 'deleted'` continue to work correctly after enum modifications, without manual intervention.
+
+### What Gets Preserved
+
+- Partial indexes with WHERE clauses referencing the enum
+- Unique constraints with partial conditions
+- Any index using enum comparisons (`=`, `!=`, `IN`, etc.)
+- When enum values are renamed (not dropped), the index definitions are updated to use the new value names.
+
+### Handling Dropped Enum Values
+
+When an enum value referenced in a partial index is being dropped, the library will detect this and provide a clear error message:
+
+```
+ERROR: Cannot drop enum value(s) 'deleted' because they are referenced in partial index 'idx_users'
+Index definition: CREATE INDEX idx_users ON users WHERE (status != 'deleted'::user_status)
+
+To resolve this issue, either:
+1. Use enum_values_to_rename to rename 'deleted' to other values instead of dropping
+2. Manually drop the index 'idx_users' before running this migration
+3. Update your code to not drop these enum values
+```
 
 ## Omitting managing enums<a id="omitting-managing-enums"></a>
 
