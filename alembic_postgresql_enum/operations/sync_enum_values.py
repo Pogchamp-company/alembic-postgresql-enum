@@ -19,11 +19,19 @@ from alembic_postgresql_enum.sql_commands.comparison_operators import (
     create_comparison_operators,
     drop_comparison_operators,
 )
+from alembic_postgresql_enum.sql_commands.indexes import (
+    get_dependent_indexes,
+    drop_indexes,
+    recreate_indexes,
+    validate_indexes_compatibility,
+    transform_index_definition_for_renamed_values,
+)
 from alembic_postgresql_enum.sql_commands.enum_type import (
     cast_old_enum_type_to_new,
     drop_type,
     rename_type,
     create_type,
+    get_enum_values,
 )
 
 if TYPE_CHECKING:
@@ -78,6 +86,29 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
     ):
         enum_type_name = f'"{enum_schema}"."{enum_name}"'
         temporary_enum_name = f"{enum_name}_old"
+        
+        dependent_indexes = get_dependent_indexes(connection, enum_schema, enum_name)
+
+        if dependent_indexes:
+            validate_indexes_compatibility(
+                dependent_indexes,
+                enum_name,
+                set(new_values),
+                enum_values_to_rename,
+                enum_schema,
+                connection
+            )
+            
+            transformed_indexes = []
+            for index_name, index_def in dependent_indexes:
+                transformed_def = transform_index_definition_for_renamed_values(
+                    index_def,
+                    enum_name,
+                    enum_values_to_rename,
+                    enum_schema
+                )
+                transformed_indexes.append((index_name, transformed_def))
+            dependent_indexes = transformed_indexes
 
         rename_type(connection, enum_type_name, temporary_enum_name)
         create_type(connection, enum_type_name, new_values)
@@ -106,9 +137,13 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
                 set_default(connection, table_reference, column_default)
 
+        drop_indexes(connection, dependent_indexes)
+        
         drop_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name)
         temporary_enum_type_name = f'"{enum_schema}"."{temporary_enum_name}"'
         drop_type(connection, temporary_enum_type_name)
+        
+        recreate_indexes(connection, dependent_indexes)
 
     @classmethod
     def sync_enum_values(
