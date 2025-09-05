@@ -94,3 +94,20 @@ def get_all_enums(connection: "Connection", schema: str):
             AND n.nspname = :schema
     """
     return connection.execute(sqlalchemy.text(sql), dict(schema=schema))
+
+
+def get_enum_values(connection: "Connection", enum_schema: str, enum_name: str) -> set[str]:
+    """Get the current values of an enum type."""
+    sql = """
+        SELECT enumlabel
+        FROM pg_catalog.pg_enum e
+        JOIN pg_catalog.pg_type t ON e.enumtypid = t.oid
+        JOIN pg_catalog.pg_namespace n ON t.typnamespace = n.oid
+        WHERE n.nspname = :schema AND t.typname = :name
+        ORDER BY e.enumsortorder
+    """
+    result = connection.execute(
+        sqlalchemy.text(sql), 
+        {"schema": enum_schema, "name": enum_name}
+    )
+    return {row.enumlabel for row in result}
