@@ -86,4 +86,5 @@ def compare_enums(
                 declarations.enum_table_references,
                 schema,
                 upgrade_ops,
+                connection=autogen_context.connection,
             )

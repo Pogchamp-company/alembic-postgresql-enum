@@ -19,6 +19,12 @@ from alembic_postgresql_enum.sql_commands.comparison_operators import (
     create_comparison_operators,
     drop_comparison_operators,
 )
+from alembic_postgresql_enum.sql_commands.indexes import (
+    TableIndex,
+    drop_indexes,
+    recreate_indexes,
+    transform_indexes_for_renamed_values,
+)
 from alembic_postgresql_enum.sql_commands.enum_type import (
     cast_old_enum_type_to_new,
     drop_type,
@@ -47,12 +53,14 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         old_values: List[str],
         new_values: List[str],
         affected_columns: List[TableReference],
+        affected_indexes: List[TableIndex] = None,
     ):
         self.schema = schema
         self.name = name
         self.old_values = old_values
         self.new_values = new_values
         self.affected_columns = affected_columns
+        self.indexes_to_recreate = affected_indexes or []
 
     def reverse(self):
         """
@@ -64,6 +72,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
             old_values=self.new_values,
             new_values=self.old_values,
             affected_columns=self.affected_columns,
+            affected_indexes=self.indexes_to_recreate,
         )
 
     @classmethod
@@ -75,14 +84,25 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         new_values: List[str],
         affected_columns: List[TableReference],
         enum_values_to_rename: List[Tuple[str, str]],
+        indexes_to_recreate: List[TableIndex],
     ):
         enum_type_name = f'"{enum_schema}"."{enum_name}"'
         temporary_enum_name = f"{enum_name}_old"
+        
+        if indexes_to_recreate and enum_values_to_rename:
+            indexes_to_recreate = transform_indexes_for_renamed_values(
+                indexes_to_recreate,
+                enum_name,
+                enum_values_to_rename,
+                enum_schema
+            )
 
         rename_type(connection, enum_type_name, temporary_enum_name)
         create_type(connection, enum_type_name, new_values)
 
         create_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name, enum_values_to_rename)
+
+        drop_indexes(connection, indexes_to_recreate)
 
         for table_reference in affected_columns:
             column_default = table_reference.existing_server_default
@@ -105,10 +125,12 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 )
 
                 set_default(connection, table_reference, column_default)
-
+        
         drop_comparison_operators(connection, enum_schema, enum_name, temporary_enum_name)
         temporary_enum_type_name = f'"{enum_schema}"."{temporary_enum_name}"'
         drop_type(connection, temporary_enum_type_name)
+
+        recreate_indexes(connection, indexes_to_recreate)
 
     @classmethod
     def sync_enum_values(
@@ -119,6 +141,7 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
         new_values: List[str],
         affected_columns: List[Tuple[str, str]],
         enum_values_to_rename: Iterable[Tuple[str, str]] = tuple(),
+        indexes_to_recreate: List[TableIndex] | None = None,
     ):
         """
         Replace enum values with `new_values`
@@ -141,6 +164,11 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                 ('tree', 'three') # to fix typo
             ]
             If there was server default with old_name it will be renamed accordingly
+        :param indexes_to_recreate:
+            List of TableIndex objects representing indexes that need to be recreated.
+            These are indexes that depend on the enum type and will be dropped and recreated
+            during the migration. This parameter should be provided at migration generation time
+            to support offline mode.
         """
 
         config = get_configuration()
@@ -188,7 +216,8 @@ class SyncEnumValuesOp(alembic.operations.ops.MigrateOperation):
                     raise ValueError("Affected columns must contain tuples or TableReferences")
 
             cls._set_enum_values(
-                connection, enum_schema, enum_name, new_values, table_references, enum_values_to_rename
+                connection, enum_schema, enum_name, new_values, table_references, enum_values_to_rename,
+                indexes_to_recreate or []
             )
 
     def to_diff_tuple(self) -> Tuple[Any, ...]:
@@ -210,13 +239,28 @@ def render_sync_enum_value_op(autogen_context: AutogenContext, op: SyncEnumValue
     if op.is_column_type_import_needed:
         autogen_context.imports.add("from alembic_postgresql_enum import ColumnType")
     autogen_context.imports.add("from alembic_postgresql_enum import TableReference")
-
-    return (
-        f"op.sync_enum_values({'  # type: ignore[attr-defined]' if config.add_type_ignore else ''}\n"
-        f"    enum_schema={op.schema!r},\n"
-        f"    enum_name={op.name!r},\n"
-        f"    new_values={op.new_values!r},\n"
-        f"    affected_columns={op.affected_columns!r},\n"
-        f"    enum_values_to_rename=[],\n"
-        f")"
-    )
+    
+    if op.indexes_to_recreate:
+        autogen_context.imports.add("from alembic_postgresql_enum.sql_commands.indexes import TableIndex")
+    
+    lines = [
+        f"op.sync_enum_values({'  # type: ignore[attr-defined]' if config.add_type_ignore else ''}",
+        f"    enum_schema={op.schema!r},",
+        f"    enum_name={op.name!r},",
+        f"    new_values={op.new_values!r},",
+        f"    affected_columns={op.affected_columns!r},",
+        f"    enum_values_to_rename=[],",
+    ]
+    
+    if op.indexes_to_recreate:
+        lines.append(f"    indexes_to_recreate=[")
+        for index in op.indexes_to_recreate:
+            lines.append(f"        TableIndex(")
+            lines.append(f"            name={index.name!r},")
+            lines.append(f"            definition={index.definition!r},")
+            lines.append(f"        ),")
+        lines.append(f"    ],")
+    
+    lines.append(f")")
+    
+    return "\n".join(lines)

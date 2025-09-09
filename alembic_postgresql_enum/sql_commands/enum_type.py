@@ -94,3 +94,5 @@ def get_all_enums(connection: "Connection", schema: str):
             AND n.nspname = :schema
     """
     return connection.execute(sqlalchemy.text(sql), dict(schema=schema))
+
+
