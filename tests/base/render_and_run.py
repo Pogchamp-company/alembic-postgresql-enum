@@ -1,5 +1,5 @@
 import textwrap
-from typing import TYPE_CHECKING, Union, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import sqlalchemy
 from alembic import autogenerate
@@ -22,9 +22,12 @@ def compare_and_run(
     expected_downgrade: str,
     expected_imports: Optional[str],
     disable_running: bool = False,
+    migration_options_overrides: Dict[str, Any] = {},
 ):
     """Compares generated migration script is equal to expected_upgrade and expected_downgrade, then runs it"""
-    migration_context = create_migration_context(connection, target_schema)
+    migration_context = create_migration_context(
+        connection, target_schema, migration_options_overrides=migration_options_overrides
+    )
 
     op = Operations(migration_context)
 

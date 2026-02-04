@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -72,9 +72,9 @@ jobs:
         name: python-package-distributions
         path: dist/
     - name: Sign the dists with Sigstore
-      uses: sigstore/gh-action-sigstore-python@v1.2.3
+      uses: sigstore/gh-action-sigstore-python@v3.0.1
       with:
-        inputs: >-
+        inputs: |
           ./dist/*.tar.gz
           ./dist/*.whl
     - name: Upload artifact signatures to GitHub Release

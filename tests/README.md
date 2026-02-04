@@ -11,7 +11,7 @@ docker compose up --build --exit-code-from run-tests
 
 ## Create database
 
-Start postgres through docker compose:
+Start a postgres instance
 
 ## Env variables
 
@@ -35,4 +35,9 @@ pip install -R tests/requirements.txt
 Run tests
 ```
 pytest
+```
+
+Run formatter
+```
+uv run black alembic_postgresql_enum/ tests/
 ```

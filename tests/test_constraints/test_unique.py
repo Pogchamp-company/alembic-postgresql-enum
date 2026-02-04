@@ -6,6 +6,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import Connection
 
 from tests.schemas import USER_TABLE_NAME, DEFAULT_SCHEMA
+from alembic_postgresql_enum.sql_commands.indexes import get_dependent_indexes
 
 
 def test_sync_enum_values_unique_column_with_equals(connection: "Connection"):
@@ -39,6 +40,8 @@ def test_sync_enum_values_unique_column_with_equals(connection: "Connection"):
     new_enum_variants.remove("admin")
     new_enum_variants.insert(0, "administrator")
 
+    indexes_to_recreate = get_dependent_indexes(connection, DEFAULT_SCHEMA, "user_role")
+
     mc = MigrationContext.configure(connection)
     ops = Operations(mc)
 
@@ -48,6 +51,7 @@ def test_sync_enum_values_unique_column_with_equals(connection: "Connection"):
         new_enum_variants,
         [(USER_TABLE_NAME, "role")],
         enum_values_to_rename=[("admin", "administrator")],
+        indexes_to_recreate=indexes_to_recreate,
     )
 
 
@@ -82,6 +86,9 @@ def test_sync_enum_values_unique_column_with_not_equals(connection: "Connection"
     new_enum_variants.remove("admin")
     new_enum_variants.insert(0, "administrator")
 
+    # Get dependent indexes before modifying the enum
+    indexes_to_recreate = get_dependent_indexes(connection, DEFAULT_SCHEMA, "user_role")
+
     mc = MigrationContext.configure(connection)
     ops = Operations(mc)
 
@@ -91,4 +98,5 @@ def test_sync_enum_values_unique_column_with_not_equals(connection: "Connection"
         new_enum_variants,
         [(USER_TABLE_NAME, "role")],
         enum_values_to_rename=[("admin", "administrator")],
+        indexes_to_recreate=indexes_to_recreate,
     )

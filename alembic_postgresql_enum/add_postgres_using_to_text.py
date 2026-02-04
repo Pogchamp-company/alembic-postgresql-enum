@@ -38,9 +38,16 @@ def _postgres_using_alter_column(autogen_context: AutogenContext, op: ops.AlterC
 log = logging.getLogger(f"alembic.{__name__}")
 
 
-def add_postgres_using_to_alter_operation(op: AlterColumnOp):
+def add_postgres_using_to_alter_operation_text_to_enum(op: AlterColumnOp):
     assert op.modify_type is not None
     op.kw["postgresql_using"] = f"{op.column_name}::{op.modify_type.name}"
+    log.info("postgresql_using added to %r.%r alteration", op.table_name, op.column_name)
+    op.__class__ = PostgresUsingAlterColumnOp
+
+
+def add_postgres_using_to_alter_operation_enum_to_enum(op: AlterColumnOp):
+    assert op.modify_type is not None
+    op.kw["postgresql_using"] = f"{op.column_name}::text::{op.modify_type.name}"
     log.info("postgresql_using added to %r.%r alteration", op.table_name, op.column_name)
     op.__class__ = PostgresUsingAlterColumnOp
 
@@ -48,8 +55,13 @@ def add_postgres_using_to_alter_operation(op: AlterColumnOp):
 def add_postgres_using_to_text(upgrade_ops: UpgradeOps):
     """Add postgresql_using to alter_column expressions that changes type from string to enum"""
     for group_op in upgrade_ops.ops:
-        if isinstance(group_op, ModifyTableOps):
-            for i, op in enumerate(group_op.ops):
-                if isinstance(op, AlterColumnOp):
-                    if isinstance(op.existing_type, String) and column_type_is_enum(op.modify_type):
-                        add_postgres_using_to_alter_operation(op)
+        if not isinstance(group_op, ModifyTableOps):
+            continue
+        for i, op in enumerate(group_op.ops):
+            if not isinstance(op, AlterColumnOp):
+                continue
+            if column_type_is_enum(op.modify_type):
+                if column_type_is_enum(op.existing_type):
+                    add_postgres_using_to_alter_operation_enum_to_enum(op)
+                elif isinstance(op.existing_type, String):
+                    add_postgres_using_to_alter_operation_text_to_enum(op)
