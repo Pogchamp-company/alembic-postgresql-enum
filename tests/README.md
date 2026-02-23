@@ -7,6 +7,12 @@ Just run:
 docker compose up --build --exit-code-from run-tests
 ```
 
+Or shortly with [justfile](https://github.com/casey/just):
+
+```commandline
+just tests
+```
+
 # Manually
 
 ## Create database
@@ -40,4 +46,11 @@ pytest
 Run formatter
 ```
 uv run black alembic_postgresql_enum/ tests/
+```
+
+
+Or shortly with [justfile](https://github.com/casey/just):
+
+```commandline
+just format
 ```

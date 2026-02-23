@@ -20,7 +20,6 @@ from alembic_postgresql_enum.configuration import get_configuration
 log = logging.getLogger(f"alembic.{__name__}")
 
 
-@alembic.autogenerate.comparators.dispatch_for("schema")
 def compare_enums(
     autogen_context: AutogenContext,
     upgrade_ops: UpgradeOps,
@@ -88,3 +87,11 @@ def compare_enums(
                 upgrade_ops,
                 connection=autogen_context.connection,
             )
+
+
+if tuple((int(s) for s in alembic.__version__.split("."))) < (1, 18, 0):
+    alembic.autogenerate.comparators.dispatch_for("schema")(compare_enums)
+else:
+    from alembic.util import DispatchPriority
+
+    alembic.autogenerate.comparators.dispatch_for("schema", priority=DispatchPriority.LAST)(compare_enums)

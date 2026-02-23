@@ -1,6 +1,6 @@
 [project]
 name = "alembic-postgresql-enum"
-version = "1.9.0"
+version = "1.10.0"
 description = "Alembic autogenerate support for creation, alteration and deletion of enums"
 authors = [
     { name = "RustyGuard" },
@@ -45,6 +45,7 @@ conflicts = [
     [
       { group = "matrix-1-4" },
       { group = "matrix-2-0" },
+      { group = "matrix-2-0-alembic_1_18" },
     ],
 ]
 
@@ -60,6 +61,10 @@ matrix-1-4 = [
 ]
 matrix-2-0 = [
     "alembic>=1.12.1",
+    "sqlalchemy~=2.0.0",
+]
+matrix-2-0-alembic_1_18 = [
+    "alembic==1.18.0; python_version >= '3.10'",
     "sqlalchemy~=2.0.0",
 ]
 
