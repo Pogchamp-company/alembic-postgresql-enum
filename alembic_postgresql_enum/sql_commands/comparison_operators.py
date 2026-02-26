@@ -90,14 +90,17 @@ def _drop_comparison_operator(
     comparison_function_name: str,
     operator_symbol: str,
 ):
-    # First drop the operator that depends on the function
+    # First drop the operator that depends on the function.
+    # CASCADE is used to handle any remaining dependent objects (e.g. partial
+    # indexes whose WHERE clause references this operator) that were not
+    # explicitly dropped via indexes_to_recreate.
     connection.execute(
         sqlalchemy.text(
             f"""
             DROP OPERATOR IF EXISTS {operator_symbol} (
                 {new_enum_type_name},
                 {old_enum_type_name}
-            )
+            ) CASCADE
             """
         )
     )

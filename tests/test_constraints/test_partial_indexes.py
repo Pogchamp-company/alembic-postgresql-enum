@@ -620,3 +620,62 @@ def test_non_partial_indexes_not_explicitly_dropped(connection: "Connection"):
     )
     enum_values = [row.value for row in result]
     assert enum_values == sorted(new_enum_values), "Enum should have new values"
+
+
+def test_partial_index_preserved_when_indexes_to_recreate_not_provided(connection: "Connection"):
+    """
+    Test that sync_enum_values does not raise when partial indexes exist but
+    indexes_to_recreate is not passed (backward compatibility with migrations
+    generated before the indexes_to_recreate feature existed).
+
+    In this scenario the dependent partial indexes are silently dropped via
+    CASCADE on the comparison operator, matching the behaviour of
+    alembic-postgresql-enum < 1.9.0.  Callers who want partial indexes to
+    survive the migration must explicitly pass indexes_to_recreate, as
+    demonstrated by test_partial_index_preserved_during_enum_modification.
+    """
+    old_enum_variants = ["active", "deleted"]
+
+    database_schema = MetaData()
+
+    Table(
+        USER_TABLE_NAME,
+        database_schema,
+        Column("id", Integer, primary_key=True),
+        Column("username", String, nullable=False),
+        Column("status", postgresql.ENUM(*old_enum_variants, name="userstatus"), nullable=False),
+        Index(
+            "uq_user_username",
+            "username",
+            unique=True,
+            postgresql_where=sqlalchemy.text("status != 'deleted'::userstatus"),
+        ),
+    )
+
+    database_schema.create_all(connection)
+
+    result = connection.execute(
+        sqlalchemy.text(
+            "SELECT indexname FROM pg_indexes WHERE tablename = :t AND indexname = :i"
+        ),
+        {"t": USER_TABLE_NAME, "i": "uq_user_username"},
+    )
+    assert result.fetchone() is not None
+
+    new_enum_variants = ["pending", "active", "deleted"]
+
+    mc = MigrationContext.configure(connection)
+    ops = Operations(mc)
+
+    ops.sync_enum_values(
+        DEFAULT_SCHEMA,
+        "userstatus",
+        new_enum_variants,
+        [(USER_TABLE_NAME, "status")],
+        enum_values_to_rename=[],
+    )
+
+    result = connection.execute(
+        sqlalchemy.text("SELECT unnest(enum_range(NULL::userstatus))::text as value ORDER BY value")
+    )
+    assert [row.value for row in result] == sorted(new_enum_variants)
