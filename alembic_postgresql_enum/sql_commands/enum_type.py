@@ -79,6 +79,11 @@ def create_type(connection: "Connection", enum_type_name: str, enum_values: List
     )
 
 
+def add_values(connection: "Connection", enum_type_name: str, enum_values: List[str]):
+    for value in enum_values:
+        connection.execute(sqlalchemy.text(f"""ALTER TYPE {enum_type_name} ADD VALUE '{value}'"""))
+
+
 def get_all_enums(connection: "Connection", schema: str):
     sql = """
         SELECT
