@@ -61,7 +61,7 @@ def sync_changed_enums(
 
         affected_indexes = get_dependent_indexes(connection, schema, enum_name)
 
-        if new_values[: len(old_values)] == old_values:
+        if set(new_values).issuperset(set(old_values)):
             op = AddEnumValuesOp(
                 schema,
                 enum_name,

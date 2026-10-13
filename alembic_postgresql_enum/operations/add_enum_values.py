@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Optional
 
 import alembic.autogenerate
 import alembic.operations.base
@@ -7,17 +7,18 @@ import alembic.operations.ops
 from alembic.autogenerate.api import AutogenContext
 
 from alembic_postgresql_enum.configuration import get_configuration
+from alembic_postgresql_enum.connection import get_connection
 from alembic_postgresql_enum.get_enum_data import TableReference
 from alembic_postgresql_enum.operations.sync_enum_values import SyncEnumValuesOp
-from alembic_postgresql_enum.sql_commands.enum_type import add_values
+from alembic_postgresql_enum.sql_commands.enum_type import add_value_before, add_value
 from alembic_postgresql_enum.sql_commands.indexes import TableIndex
 
 log = logging.getLogger(f"alembic.{__name__}")
 
 
-@alembic.operations.base.Operations.register_operation("add_enum_values")
+@alembic.operations.base.Operations.register_operation("add_enum_value")
 class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
-    operation_name = "add_enum_values"
+    operation_name = "add_enum_value"
 
     def __init__(
         self,
@@ -35,9 +36,6 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
         self.affected_columns = affected_columns
         self.indexes_to_recreate = affected_indexes or []
 
-        if new_values[: len(old_values)] != old_values:
-            raise ValueError("new_values can only append values")
-
     def reverse(self):
         """
         See MigrateOperation.reverse().
@@ -52,12 +50,8 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
         )
 
     @classmethod
-    def add_enum_values(
-        cls,
-        operations,
-        enum_schema: str,
-        enum_name: str,
-        new_values: List[str],
+    def add_enum_value(
+        cls, operations, enum_schema: str, enum_name: str, new_value: str, value_before: Optional[str] = None
     ):
         """
         Replace enum values with `new_values`
@@ -67,7 +61,7 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
             Schema name.
         :param enum_name:
             Enumeration type name.
-        :param list new_values:
+        :param list new_value:
             List of enumeration values that should exist after this migration
             executes.
         """
@@ -81,7 +75,12 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
             return
 
         enum_type_name = f'"{enum_schema}"."{enum_name}"'
-        add_values(operations, enum_type_name, new_values)
+
+        with get_connection(operations) as connection:
+            if value_before:
+                add_value_before(connection, enum_type_name, value_before, new_value)
+            else:
+                add_value(connection, enum_type_name, new_value)
 
     def to_diff_tuple(self) -> Tuple[Any, ...]:
         return (
@@ -96,13 +95,42 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
 def render_add_enum_values_op(autogen_context: AutogenContext, op: AddEnumValuesOp):
     config = get_configuration()
     alembic_module_prefix = autogen_context.opts.get("alembic_module_prefix", "op.")
+    ops = []
 
-    return "\n".join(
-        [
-            f"{alembic_module_prefix}add_enum_values({config.type_ignore_comment if config.add_type_ignore else ''}",
-            f"    enum_schema={op.schema!r},",
-            f"    enum_name={op.name!r},",
-            f"    new_values={op.new_values[len(op.old_values) :]!r},",
-            ")",
-        ]
-    )
+    old_values = op.old_values
+    new_values = op.new_values
+
+    i, j = 0, 0
+    while i < len(old_values):
+        if old_values[i] != new_values[j]:
+            ops.append(
+                "\n".join(
+                    [
+                        f"{alembic_module_prefix}add_enum_value({config.type_ignore_comment if config.add_type_ignore else ''}",
+                        f"    enum_schema={op.schema!r},",
+                        f"    enum_name={op.name!r},",
+                        f"    new_value={new_values[j]!r},",
+                        f"    value_before={old_values[i]!r},",
+                        ")",
+                    ]
+                )
+            )
+            j += 1
+        else:
+            i += 1
+            j += 1
+
+    for value in new_values[(new_values.index(old_values[-1]) + 1) if old_values else 0 :]:
+        ops.append(
+            "\n".join(
+                [
+                    f"{alembic_module_prefix}add_enum_value({config.type_ignore_comment if config.add_type_ignore else ''}",
+                    f"    enum_schema={op.schema!r},",
+                    f"    enum_name={op.name!r},",
+                    f"    new_value={value!r},",
+                    ")",
+                ]
+            )
+        )
+
+    return "\n".join(ops)
