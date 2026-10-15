@@ -6,7 +6,7 @@ SQLAlchemy enums.
 
 import logging
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Sequence
 
 from alembic.operations.ops import UpgradeOps
 
@@ -23,6 +23,18 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
 log = logging.getLogger(f"alembic.{__name__}")
+
+
+def _check_can_add_values(old_values: Sequence[str], new_values: Sequence[str]):
+    if not set(new_values).issuperset(set(old_values)):
+        return False
+    i = 0
+    for value in new_values:
+        if value in old_values:
+            if old_values.index(value) != i:
+                return False
+            i += 1
+    return True
 
 
 def sync_changed_enums(
@@ -61,7 +73,7 @@ def sync_changed_enums(
 
         affected_indexes = get_dependent_indexes(connection, schema, enum_name)
 
-        if set(new_values).issuperset(set(old_values)):
+        if _check_can_add_values(old_values, new_values):
             op = AddEnumValuesOp(
                 schema,
                 enum_name,

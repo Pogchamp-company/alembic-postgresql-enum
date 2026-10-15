@@ -61,8 +61,8 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
             Schema name.
         :param enum_name:
             Enumeration type name.
-        :param list new_value:
-            List of enumeration values that should exist after this migration
+        :param new_value:
+            enumeration value that should exist after this migration
             executes.
         """
 
