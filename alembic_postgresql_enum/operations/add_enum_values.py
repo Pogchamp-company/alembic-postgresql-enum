@@ -51,7 +51,7 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
 
     @classmethod
     def add_enum_value(
-        cls, operations, enum_schema: str, enum_name: str, new_value: str, value_before: Optional[str] = None
+        cls, operations, enum_schema: str, enum_name: str, new_value: str, before_value: Optional[str] = None
     ):
         """
         Replace enum values with `new_values`
@@ -77,8 +77,8 @@ class AddEnumValuesOp(alembic.operations.ops.MigrateOperation):
         enum_type_name = f'"{enum_schema}"."{enum_name}"'
 
         with get_connection(operations) as connection:
-            if value_before:
-                add_value_before(connection, enum_type_name, value_before, new_value)
+            if before_value:
+                add_value_before(connection, enum_type_name, before_value, new_value)
             else:
                 add_value(connection, enum_type_name, new_value)
 
@@ -110,7 +110,7 @@ def render_add_enum_values_op(autogen_context: AutogenContext, op: AddEnumValues
                         f"    enum_schema={op.schema!r},",
                         f"    enum_name={op.name!r},",
                         f"    new_value={new_values[j]!r},",
-                        f"    value_before={old_values[i]!r},",
+                        f"    before_value={old_values[i]!r},",
                         ")",
                     ]
                 )
