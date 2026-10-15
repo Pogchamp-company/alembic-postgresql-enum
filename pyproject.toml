@@ -1,6 +1,6 @@
 [project]
 name = "alembic-postgresql-enum"
-version = "1.10.0"
+version = "1.11.0"
 description = "Alembic autogenerate support for creation, alteration and deletion of enums"
 authors = [
     { name = "RustyGuard" },
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
     "SQLAlchemy>=1.4",

@@ -11,7 +11,7 @@ class TestExoticColumnNameRender(CompareAndRunTestCase):
     """https://github.com/Pogchamp-company/alembic-postgresql-enum/issues/95"""
 
     old_enum_variants = ["active", "passive"]
-    new_enum_variants = old_enum_variants + ["banned"]
+    new_enum_variants = ["passive", "active", "banned"]
 
     def get_database_schema(self) -> MetaData:
         schema = MetaData()
@@ -49,7 +49,7 @@ class TestExoticColumnNameRender(CompareAndRunTestCase):
             op.sync_enum_values(
                 enum_schema='public',
                 enum_name='user_status',
-                new_values=['active', 'passive', 'banned'],
+                new_values=['passive', 'active', 'banned'],
                 affected_columns=[TableReference(table_schema='public', table_name='users', column_name='case')],
                 enum_values_to_rename=[],
             )
@@ -74,7 +74,7 @@ class TestExoticColumnNameRenderCamelCase(CompareAndRunTestCase):
     """https://github.com/Pogchamp-company/alembic-postgresql-enum/issues/95"""
 
     old_enum_variants = ["active", "passive"]
-    new_enum_variants = old_enum_variants + ["banned"]
+    new_enum_variants = ["passive", "active", "banned"]
 
     def get_database_schema(self) -> MetaData:
         schema = MetaData()
@@ -112,7 +112,7 @@ class TestExoticColumnNameRenderCamelCase(CompareAndRunTestCase):
             op.sync_enum_values(
                 enum_schema='public',
                 enum_name='user_status',
-                new_values=['active', 'passive', 'banned'],
+                new_values=['passive', 'active', 'banned'],
                 affected_columns=[TableReference(table_schema='public', table_name='users', column_name='CamelCase')],
                 enum_values_to_rename=[],
             )
