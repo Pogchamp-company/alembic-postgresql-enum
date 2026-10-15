@@ -1,4 +1,4 @@
-FROM python:latest
+FROM python:3.12-slim
 
 COPY ./pyproject.toml ./pyproject.toml
 COPY ./uv.lock ./uv.lock
