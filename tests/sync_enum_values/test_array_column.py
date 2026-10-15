@@ -6,7 +6,7 @@ from alembic.operations import ops
 
 from alembic_postgresql_enum import ColumnType
 from alembic_postgresql_enum.get_enum_data import TableReference
-from alembic_postgresql_enum.operations import SyncEnumValuesOp
+from alembic_postgresql_enum.operations import AddEnumValuesOp, SyncEnumValuesOp
 from tests.base.run_migration_test_abc import CompareAndRunTestCase
 
 if TYPE_CHECKING:
@@ -23,11 +23,11 @@ from tests.schemas import (
 from tests.utils.migration_context import create_migration_context
 
 
-class TestAddNewEnumValueRenderWithArray(CompareAndRunTestCase):
+class TestSyncEnumValueRenderWithArray(CompareAndRunTestCase):
     """Check that enum variants are updated when new variant is added"""
 
     old_enum_variants = ["black", "white", "red", "green", "blue", "other"]
-    new_enum_variants = old_enum_variants + ["violet"]
+    new_enum_variants = ["black", "white", "green", "red", "blue", "other", "violet"]
 
     def get_database_schema(self) -> MetaData:
         schema = get_schema_with_enum_in_array_variants(self.old_enum_variants)
@@ -91,7 +91,7 @@ def test_add_new_enum_value_diff_tuple_with_array(connection: "Connection"):
     sync_diff_tuple = diffs[0]
 
     assert sync_diff_tuple == (
-        SyncEnumValuesOp.operation_name,
+        AddEnumValuesOp.operation_name,
         old_enum_variants,
         new_enum_variants,
         [

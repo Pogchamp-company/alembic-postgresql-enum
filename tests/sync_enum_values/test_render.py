@@ -1,6 +1,7 @@
 import enum
 from typing import TYPE_CHECKING
 
+import pytest
 from alembic import autogenerate
 from alembic.autogenerate import api
 from alembic.operations import ops
@@ -9,7 +10,7 @@ from sqlalchemy.orm import declarative_base
 
 from alembic_postgresql_enum.configuration import Config
 from alembic_postgresql_enum.get_enum_data import TableReference
-from alembic_postgresql_enum.operations import SyncEnumValuesOp
+from alembic_postgresql_enum.operations import AddEnumValuesOp, SyncEnumValuesOp
 from tests.base.run_migration_test_abc import CompareAndRunTestCase
 
 if TYPE_CHECKING:
@@ -57,13 +58,13 @@ class TestDisabledSyncEnumValues(CompareAndRunTestCase):
         """
 
 
-class TestAddNewEnumValueRender(CompareAndRunTestCase):
+class TestSyncEnumValueRender(CompareAndRunTestCase):
     """Check that enum variants are updated when new variant is added"""
 
     config = Config(add_type_ignore=True, type_ignore_comment="  # ty: ignore[unresolved-attribute]")
 
     old_enum_variants = ["active", "passive"]
-    new_enum_variants = old_enum_variants + ["banned"]
+    new_enum_variants = ["passive", "active", "banned"]
 
     def get_database_schema(self) -> MetaData:
         schema = get_schema_with_enum_variants(self.old_enum_variants)
@@ -124,7 +125,7 @@ def test_add_new_enum_value_diff_tuple(connection: "Connection"):
     sync_diff_tuple = diffs[0]
 
     assert sync_diff_tuple == (
-        SyncEnumValuesOp.operation_name,
+        AddEnumValuesOp.operation_name,
         old_enum_variants,
         new_enum_variants,
         [TableReference(table_schema=DEFAULT_SCHEMA, table_name=USER_TABLE_NAME, column_name=USER_STATUS_COLUMN_NAME)],
@@ -218,6 +219,7 @@ class TestServerDefault(CompareAndRunTestCase):
             one = 1
             two = 2
             three = 3
+            five = 5
 
         class ExampleTable(Base):
             __tablename__ = "example_table"
@@ -263,7 +265,7 @@ class TestServerDefault(CompareAndRunTestCase):
         op.sync_enum_values(
             enum_schema='public',
             enum_name='my_enum',
-            new_values=['one', 'two', 'three'],
+            new_values=['one', 'two', 'three', 'five'],
             affected_columns=[TableReference(table_schema='public', table_name='example_table', column_name='enum_field', existing_server_default="'one'::my_enum")],
             enum_values_to_rename=[],
         )
