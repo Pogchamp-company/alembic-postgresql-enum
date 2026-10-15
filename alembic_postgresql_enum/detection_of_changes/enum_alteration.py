@@ -14,7 +14,7 @@ from alembic_postgresql_enum.get_enum_data import (
     EnumNamesToValues,
     EnumNamesToTableReferences,
 )
-from alembic_postgresql_enum.operations.add_enum_values import AddEnumValuesOp
+from alembic_postgresql_enum.operations.add_enum_values import AddEnumValuesOp, check_can_add_values
 from alembic_postgresql_enum.operations.sync_enum_values import SyncEnumValuesOp
 from alembic_postgresql_enum.configuration import get_configuration
 from alembic_postgresql_enum.sql_commands.indexes import get_dependent_indexes
@@ -23,18 +23,6 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
 log = logging.getLogger(f"alembic.{__name__}")
-
-
-def _check_can_add_values(old_values: Sequence[str], new_values: Sequence[str]):
-    if not set(new_values).issuperset(set(old_values)):
-        return False
-    i = 0
-    for value in new_values:
-        if value in old_values:
-            if old_values.index(value) != i:
-                return False
-            i += 1
-    return True
 
 
 def sync_changed_enums(
@@ -73,7 +61,7 @@ def sync_changed_enums(
 
         affected_indexes = get_dependent_indexes(connection, schema, enum_name)
 
-        if _check_can_add_values(old_values, new_values):
+        if check_can_add_values(old_values, new_values):
             op = AddEnumValuesOp(
                 schema,
                 enum_name,
