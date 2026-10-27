@@ -111,7 +111,7 @@ wheels = [
 
 [[package]]
 name = "alembic-postgresql-enum"
-version = "1.11.0"
+version = "1.11.1"
 source = { editable = "." }
 dependencies = [
     { name = "alembic", version = "1.12.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.8' or (extra == 'group-23-alembic-postgresql-enum-matrix-1-4' and extra == 'group-23-alembic-postgresql-enum-matrix-2-0') or (extra == 'group-23-alembic-postgresql-enum-matrix-1-4' and extra == 'group-23-alembic-postgresql-enum-matrix-2-0-alembic-1-18') or (extra == 'group-23-alembic-postgresql-enum-matrix-2-0' and extra == 'group-23-alembic-postgresql-enum-matrix-2-0-alembic-1-18')" },
