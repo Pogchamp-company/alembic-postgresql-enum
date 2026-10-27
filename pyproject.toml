@@ -1,6 +1,6 @@
 [project]
 name = "alembic-postgresql-enum"
-version = "1.11.0"
+version = "1.11.1"
 description = "Alembic autogenerate support for creation, alteration and deletion of enums"
 authors = [
     { name = "RustyGuard" },
