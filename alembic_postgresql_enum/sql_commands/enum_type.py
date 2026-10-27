@@ -81,7 +81,7 @@ def create_type(connection: "Connection", enum_type_name: str, enum_values: List
 
 def add_value_before(connection: "Connection", enum_type_name: str, neighbor_value: str, enum_value: str):
     connection.execute(
-        sqlalchemy.text(f"""ALTER TYPE {enum_type_name} ADD VALUE '{enum_value}' AFTER '{neighbor_value}'""")
+        sqlalchemy.text(f"""ALTER TYPE {enum_type_name} ADD VALUE '{enum_value}' BEFORE '{neighbor_value}'""")
     )
 
 
